@@ -1,4 +1,4 @@
-![Group 427318941](https://github.com/user-attachments/assets/efbaa7f0-65f1-4185-ab9d-c2de0ba41d57)
+![Group 427318941](https://github.com/user-attachments/assets/0451b76c-c544-4888-8637-e931d73e8175)
 
 # 🖼️ Thirdweb for Frames
 
@@ -31,7 +31,7 @@ If you haven't setup ngrok before, install it [here](https://ngrok.com/our-produ
 
 Open the [frames playground](https://warpcast.com/~/developers/frame-playground) on your mobile device (with Warpcast installed). Paste your ngrok url and click "Launch". The splash screen will show for a moment then you'll see your profile appear within the frame. If you've already connected a wallet to Warpcast, you'll automatically be connected in the frame. You'll see your wallet address and be able to send a simple transaction. If not, press "Connect Wallet" and you'll be able to connect any Warpcast-compatible wallet.
 
-<img src="https://github.com/user-attachments/assets/511edf4f-1d02-427b-a0e3-bf51bcc1a305" width="300px" alt="" />
+<img src="https://github.com/user-attachments/assets/0d667c1d-12a2-4014-988f-d567b4bb7f44" width="300px" alt="" />
 
 Congratulations! You've got your first frame running. Read the next section to understand how it all works (it's surprisingly simple). If you're already an expert, dive into the code and start building your Frame. Once you launch, share it with us in [/thirdweb](https://warpcast.com/~/channel/thirdweb)!
 
