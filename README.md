@@ -5,7 +5,7 @@
 The Thirdweb SDK was intentionally built for as many platforms as possible, and Farcaster frames are no exception! While other libraries require custom, advanced connectors to use Frames, Thirdweb integrates with the Farcaster provider in a single line with our `EIP1193.fromProvider` utility. The Frame wallet can then behave like any other wallet you use Thirdweb with.
 
 [🛠️ Frame Playground](https://warpcast.com/~/developers/frame-playground) (Mobile only)<br/>
-[📦 Thirdweb SDK]([https://github.com/farcasterxyz/frames/](https://portal.thirdweb.com/connect))<br/>
+[📦 Thirdweb SDK](https://portal.thirdweb.com/connect)<br/>
 
 ## ⭐ Start Here
 
