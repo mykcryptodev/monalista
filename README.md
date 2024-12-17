@@ -44,7 +44,7 @@ import { EIP1193 } from "thirdweb/wallets";
 const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
 ```
 > [!TIP]
-> You can use the `fromProvider` function with other libraries too! Connect wagmi, Dynamic, or Magic wallets to your Thirdweb app in a single line.
+> You can use the `fromProvider` function with other libraries too! Connect wagmi, Dynamic, Privy, or Magic wallets to your Thirdweb app in a single line.
 
 You now have a wallet ready to use with Thirdweb! Yeah, it's that simple. If you want to connect this wallet to your app's Thirdweb React context like in the example, just wrap this line in the React `connect` function from `useConnect`.
 
