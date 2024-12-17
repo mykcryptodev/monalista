@@ -67,7 +67,7 @@ const connectWallet = useCallback(async () => {
     connect(async () => {
       const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
       await wallet.connect({ client: ThirdwebClient });
-      return;
+      return wallet;
     })
   }, [connect]);
 
