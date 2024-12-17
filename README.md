@@ -56,7 +56,8 @@ import { EIP1193 } from "thirdweb/wallets";
 
 connect(async () => {
   const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
-  return wallet.connect({ client: ThirdwebClient });
+  await wallet.connect({ client: ThirdwebClient });
+  return wallet;
 })
 ```
 
@@ -65,7 +66,8 @@ That's it! Run this when the Frames SDK loads and you're all set:
 const connectWallet = useCallback(async () => {
     connect(async () => {
       const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
-      return wallet.connect({ client: ThirdwebClient });
+      await wallet.connect({ client: ThirdwebClient });
+      return;
     })
   }, [connect]);
 
