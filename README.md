@@ -14,7 +14,7 @@ First, clone this repo to your local machine. In most cases, you'll want to fork
 You've cloned your app, now set your environment variables by copying the `.env.example` file and setting a client ID and secret key. Don't set the app url just yet, we'll do that in a minute. For now, head over to the [thirdweb dashboard](https://thirdweb.com/login) to get your client ID and secret key.
 
 > [!IMPORTANT]
-> Never expose your secret key! Your client ID isn't meant to be private, but your secret key should never be shared or exposed on the frontend!
+> Never expose your secret key! Your client ID isn't meant to be private, but your secret key should never be shared or exposed on the frontend! Your client ID can be restricted to your domains, you should definitely do that. Simply add localhost:3000 and you ngrok url to the allowlisted domains in the thirdweb dashboard.
 
 Once your environment variables are set, install dependencies and start your app.
 
@@ -27,7 +27,7 @@ Your app is now running at http://localhost:3000, but it won't look as expected,
 If you haven't setup ngrok before, install it [here](https://ngrok.com/our-product/secure-tunnels). Once you have ngrok installed, run `ngrok http http://localhost:3000` to start the tunnel. Copy the URL returned and leave the tunnel running.
 
 > [!IMPORTANT]  
-> Okay now it's time to set the app url in your `.env` file! Set it to the ngrok url, but in production you'll want to set it to your deployed URL.
+> Okay now it's time to set the app url in your `.env` file! Set it to the ngrok url, but in production you'll want to set it to your deployed URL. You might also want to add the url to your allowlisted domains for project in the thirdweb dashboard.
 
 Open the [frames playground](https://warpcast.com/~/developers/frame-playground) on your mobile device (with Warpcast installed). Paste your ngrok url and click "Launch". The splash screen will show for a moment then you'll see your profile appear within the frame. If you've already connected a wallet to Warpcast, you'll automatically be connected in the frame. You'll see your wallet address and be able to send a simple transaction. If not, press "Connect Wallet" and you'll be able to connect any Warpcast-compatible wallet.
 
@@ -38,11 +38,13 @@ Congratulations! You've got your first frame running. Read the next section to u
 ## 🔨 How it works
 
 Thirdweb is by far the easiest way to build frames, and it's not even close. With minimal dependencies and lock-in, you can connect to the Warpcast wallet in a single line:
+
 ```ts
 import { EIP1193 } from "thirdweb/wallets";
 
 const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
 ```
+
 > [!TIP]
 > You can use the `fromProvider` function with other libraries too! Connect wagmi, Dynamic, Privy, or Magic wallets to your Thirdweb app in a single line.
 
@@ -62,28 +64,29 @@ connect(async () => {
 ```
 
 That's it! Run this when the Frames SDK loads and you're all set:
+
 ```tsx
 const connectWallet = useCallback(async () => {
-    connect(async () => {
-      const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
-      await wallet.connect({ client: ThirdwebClient });
-      return wallet;
-    })
-  }, [connect]);
+  connect(async () => {
+    const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
+    await wallet.connect({ client: ThirdwebClient });
+    return wallet;
+  });
+}, [connect]);
 
-  useEffect(() => {
-    const load = async () => {
-      setContext(await sdk.context);
-      sdk.actions.ready({});
-    };
-    if (sdk && !isSDKLoaded) {
-      setIsSDKLoaded(true);
-      load();
-      if (sdk.wallet) {
-        connectWallet();
-      }
+useEffect(() => {
+  const load = async () => {
+    setContext(await sdk.context);
+    sdk.actions.ready({});
+  };
+  if (sdk && !isSDKLoaded) {
+    setIsSDKLoaded(true);
+    load();
+    if (sdk.wallet) {
+      connectWallet();
     }
-  }, [isSDKLoaded, connectWallet]);
+  }
+}, [isSDKLoaded, connectWallet]);
 ```
 
 Now send a transaction with your connected wallet. You can do this in React with the `useActiveAccount` hook, or in plain TypeScript:
@@ -95,13 +98,14 @@ const tx = prepareTransaction({
   to: "0x...",
   value: 10000n,
   client: ThirdwebClient,
-})
+});
 sendTransaction({ transaction: tx, account });
 ```
 
 I know what you're thinking, where are the 30 dependencies I need to install? Where's the 500-line custom connector to get everything to play nicely??? We don't believe in those at Thirdweb.
 
 ## 👋 Say Hey
+
 If any of this was confusing to you or you just want to show us what you're building, reach out to use on Farcaster in the [/thirdweb](https://warpcast.com/~/channel/thirdweb) channel!
 
 ---
