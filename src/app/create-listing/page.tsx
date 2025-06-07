@@ -8,7 +8,6 @@ import {
   useActiveAccount,
 } from "thirdweb/react";
 import { createListing } from "thirdweb/extensions/marketplace";
-import { toUnits } from "thirdweb/utils";
 import { client, marketplaceContract } from "~/constants";
 import { toast } from "react-toastify";
 
@@ -58,7 +57,7 @@ export default function CreateListingPage() {
                   assetContractAddress: tokenAddress as `0x${string}`,
                   tokenId: BigInt(tokenId),
                   quantity: 1n,
-                  pricePerToken: toUnits(price, 18).toString(),
+                  pricePerToken: price,
                 })
               }
               className="!btn !btn-primary !btn-sm"
