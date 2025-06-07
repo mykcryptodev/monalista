@@ -11,10 +11,10 @@ import { createListing } from "thirdweb/extensions/marketplace";
 import { client, marketplaceContract } from "~/constants";
 import { toast } from "react-toastify";
 
-function parseEther(value: string): bigint {
+function parseEther(value: string): string {
   const [whole, fraction = ""] = value.split(".");
   const frac = (fraction + "000000000000000000").slice(0, 18);
-  return BigInt(whole + frac);
+  return BigInt(whole + frac).toString();
 }
 
 export default function CreateListingPage() {
