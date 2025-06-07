@@ -1,14 +1,14 @@
 import { useEffect, type FC, useState } from "react";
 import { AuctionCard } from "./Card";
 import { marketplaceContract } from "~/constants";
-import { type EnglishAuction, getAllValidEnglishAuctions } from "thirdweb/extensions/marketplace";
+import { type EnglishAuction, getAllValidAuctions } from "thirdweb/extensions/marketplace";
 
 export const AuctionList: FC = () => {
   const [auctions, setAuctions] = useState<EnglishAuction[]>([]);
 
   useEffect(() => {
     const fetchAuctions = async () => {
-      const data = await getAllValidEnglishAuctions({
+      const data = await getAllValidAuctions({
         contract: marketplaceContract,
       });
       setAuctions(data);
