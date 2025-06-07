@@ -5,6 +5,7 @@ import {
 } from "thirdweb/react";
 import { appDescription, appName, client } from "~/constants";
 import { DirectListingList } from "./components/DirectListing/List";
+import { AuctionList } from "./components/Auction/List";
 
 export default function App() {
 	return (
@@ -19,7 +20,8 @@ export default function App() {
 					<h1 className="text-2xl text-center font-bold">{appName}</h1>
 					<p className="text-center text-base-content/50">{appDescription}</p>
 				</div>
-				<DirectListingList />
+                                <DirectListingList />
+                                <AuctionList />
 			</div>
 		</main>
 	);
