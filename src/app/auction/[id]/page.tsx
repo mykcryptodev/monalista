@@ -113,13 +113,15 @@ export default function AuctionPage() {
                 <div className="flex justify-between">
                   <span className="font-semibold">Min Bid:</span>
                   <span>
-                    {auction.minimumBidAmount.displayValue} {auction.minimumBidAmount.symbol}
+                    {auction.minimumBidCurrencyValue.displayValue}{" "}
+                    {auction.minimumBidCurrencyValue.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Buyout:</span>
                   <span>
-                    {auction.buyoutBidAmount.displayValue} {auction.buyoutBidAmount.symbol}
+                    {auction.buyoutCurrencyValue.displayValue}{" "}
+                    {auction.buyoutCurrencyValue.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -146,7 +148,7 @@ export default function AuctionPage() {
                         bidInAuction({
                           contract: marketplaceContract,
                           auctionId: auction.id,
-                          bidAmount: auction.minimumBidAmount.value,
+                          bidAmount: auction.minimumBidAmount,
                         })
                       }
                       className="!btn !btn-primary !btn-sm"

@@ -36,7 +36,8 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
             {auction.asset.metadata.name}
           </h2>
           <p className="text-xs w-full truncate">
-            {auction.minimumBidAmount.displayValue} {auction.minimumBidAmount.symbol}
+            {auction.minimumBidCurrencyValue.displayValue}{" "}
+            {auction.minimumBidCurrencyValue.symbol}
           </p>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
