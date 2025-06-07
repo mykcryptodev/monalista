@@ -95,9 +95,7 @@ export default function DirectListingPage() {
           tokenId={BigInt(listing.asset.id)}
         >
           <div className="card bg-base-100 shadow-xl">
-            <figure>
-              <NFTMedia className="w-full h-64 object-cover" />
-            </figure>
+            <NFTMedia className="w-full h-64 object-cover" />
             <div className="card-body p-4">
               <h2 className="card-title">
                 <NFTName />
@@ -108,7 +106,7 @@ export default function DirectListingPage() {
               
               <div className="divider"></div>
               
-              <div className="space-y-2">
+              <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="font-semibold">Price:</span>
                   <span>{listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}</span>

@@ -15,7 +15,7 @@ export const Account: FC<Props> = ({ address }) => {
         <AccountAvatar
           fallbackComponent={<AccountAvatarFallback />}
           loadingComponent={<AccountAvatarFallback />}
-          className="w-6 h-6"
+          className="w-6 h-6 rounded-lg"
         />
         <AccountName
           className="text-xs truncate"
