@@ -8,14 +8,9 @@ import {
   useActiveAccount,
 } from "thirdweb/react";
 import { createListing } from "thirdweb/extensions/marketplace";
+import { toUnits } from "thirdweb/utils";
 import { client, marketplaceContract } from "~/constants";
 import { toast } from "react-toastify";
-
-function parseEther(value: string): string {
-  const [whole, fraction = ""] = value.split(".");
-  const frac = (fraction + "000000000000000000").slice(0, 18);
-  return BigInt(whole + frac).toString();
-}
 
 export default function CreateListingPage() {
   const account = useActiveAccount();
@@ -63,7 +58,7 @@ export default function CreateListingPage() {
                   assetContractAddress: tokenAddress as `0x${string}`,
                   tokenId: BigInt(tokenId),
                   quantity: 1n,
-                  pricePerToken: parseEther(price),
+                  pricePerToken: toUnits(price, 18),
                 })
               }
               className="!btn !btn-primary !btn-sm"
