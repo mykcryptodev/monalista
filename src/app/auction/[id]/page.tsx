@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getContract } from "thirdweb";
 import {
-  getEnglishAuction,
+  getAuction,
   type EnglishAuction,
   buyoutAuction,
   bidInAuction,
@@ -36,7 +36,7 @@ export default function AuctionPage() {
     const fetchAuction = async () => {
       try {
         setLoading(true);
-        const auctionData = await getEnglishAuction({
+        const auctionData = await getAuction({
           contract: marketplaceContract,
           auctionId: BigInt(auctionId),
         });
