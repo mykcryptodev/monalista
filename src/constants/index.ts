@@ -1,5 +1,6 @@
 import { createThirdwebClient, getContract } from "thirdweb";
 import { base } from "thirdweb/chains";
+import * as marketplaceAbiRaw from "./abi/marketplace";
 
 export const client = createThirdwebClient(
   process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID
@@ -21,3 +22,5 @@ export const marketplaceContract = getContract({
 
 export const appName = "Mona Lista";
 export const appDescription = "An NFT marketplace on Farcaster";
+
+export const marketplaceAbi = marketplaceAbiRaw;

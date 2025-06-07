@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { ThirdwebProvider } from "thirdweb/react";
 import { FarcasterProvider } from "./context/Farcaster";
+import { ToastContainer } from "react-toastify";
 
+import "react-toastify/dist/ReactToastify.css";
 import "~/app/globals.css";
 
 export const metadata: Metadata = {
@@ -20,6 +22,7 @@ export default function RootLayout({
         <ThirdwebProvider>
           <FarcasterProvider>
             {children}
+            <ToastContainer />
           </FarcasterProvider>
         </ThirdwebProvider>
       </body>
