@@ -56,7 +56,7 @@ export default function CreateListingPage() {
                 createListing({
                   contract: marketplaceContract,
                   assetContractAddress: tokenAddress as `0x${string}`,
-                  tokenId,
+                  tokenId: BigInt(tokenId),
                   quantity: 1n,
                   pricePerToken: toUnits(price, 18).toString(),
                 })
