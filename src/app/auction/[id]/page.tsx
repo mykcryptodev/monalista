@@ -7,8 +7,8 @@ import {
   getEnglishAuction,
   type EnglishAuction,
   buyoutAuction,
-  makeBid,
-  cancelEnglishAuction,
+  bidInAuction,
+  cancelAuction,
 } from "thirdweb/extensions/marketplace";
 import {
   NFTProvider,
@@ -143,7 +143,7 @@ export default function AuctionPage() {
                   <>
                     <TransactionButton
                       transaction={() =>
-                        makeBid({
+                        bidInAuction({
                           contract: marketplaceContract,
                           auctionId: auction.id,
                           bidAmount: auction.minimumBidAmount.value,
@@ -191,7 +191,7 @@ export default function AuctionPage() {
                 {account?.address?.toLowerCase() === auction.creatorAddress.toLowerCase() && (
                   <TransactionButton
                     transaction={() =>
-                      cancelEnglishAuction({
+                      cancelAuction({
                         contract: marketplaceContract,
                         auctionId: auction.id,
                       })
