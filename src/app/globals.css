@@ -1,9 +1,26 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: sunset --default, sunset --prefersdark;
+}
+
+@font-face {
+  font-family: 'Segment';
+  src: url('/fonts/Segment/Segment-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Segment';
+  src: url('/fonts/Segment/Segment-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 body {
-  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  font-family: 'Segment', 'Inter', Helvetica, Arial, sans-serif;
 }
 
 * {

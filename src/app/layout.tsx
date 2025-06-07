@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThirdwebProvider } from "thirdweb/react";
+import { FarcasterProvider } from "./context/Farcaster";
 
 import "~/app/globals.css";
 
@@ -14,10 +15,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="sunset">
       <body>
         <ThirdwebProvider>
-          {children}
+          <FarcasterProvider>
+            {children}
+          </FarcasterProvider>
         </ThirdwebProvider>
       </body>
     </html>

@@ -9,20 +9,22 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
-		"@farcaster/frame-sdk": "^0.0.31",
+		"@farcaster/frame-sdk": "^0.0.60",
+		"@tailwindcss/postcss": "^4.1.8",
 		"next": "^15",
 		"react": "^19",
 		"react-dom": "^19",
-		"thirdweb": "^5.93.4"
+		"thirdweb": "^5.102.6"
 	},
 	"devDependencies": {
 		"@types/node": "^20",
 		"@types/react": "^18",
 		"@types/react-dom": "^18",
+		"daisyui": "^5.0.43",
 		"eslint": "^8",
 		"eslint-config-next": "15.0.3",
 		"postcss": "^8",
-		"tailwindcss": "^3.4.1",
+		"tailwindcss": "^4.1.8",
 		"typescript": "^5"
 	}
 }
