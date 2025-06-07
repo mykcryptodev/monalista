@@ -8,8 +8,8 @@ import { DirectListingList } from "./components/DirectListing/List";
 
 export default function App() {
 	return (
-		<main className="bg-base-400 h-screen w-screen">
-			<div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full">
+		<main className="h-screen w-screen">
+			<div className="w-[300px] mx-auto p-4 h-full">
 				<div className="flex justify-stretch flex-col mb-2 gap-2">
 					<ConnectButton client={client} />
 				</div>

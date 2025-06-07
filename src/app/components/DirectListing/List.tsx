@@ -19,8 +19,8 @@ export const DirectListingList: FC = () => {
   
   return (
     <div>
-      <h1 className="font-bold">For Sale</h1>
-      <div className="grid grid-cols-2 gap-4">
+      <h1 className="font-bold mb-2">For Sale</h1>
+      <div className="grid grid-cols-2 gap-4 p-2 bg-base-300 rounded-lg">
         {listings.map((listing) => (
           <DirectListingCard
             key={listing.id}
