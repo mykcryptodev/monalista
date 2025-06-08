@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ConnectButton,
@@ -8,7 +8,16 @@ import {
   useActiveAccount,
 } from "thirdweb/react";
 import { createAuction } from "thirdweb/extensions/marketplace";
-import { client, marketplaceContract } from "~/constants";
+import {
+  chain,
+  client,
+  marketplaceContract,
+} from "~/constants";
+import { getContract } from "thirdweb";
+import { isApprovedForAll as isApprovedForAll721 } from "thirdweb/extensions/erc721";
+import { isApprovedForAll as isApprovedForAll1155 } from "thirdweb/extensions/erc1155";
+import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
+import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
 
 export default function CreateAuctionPage() {
@@ -23,6 +32,36 @@ export default function CreateAuctionPage() {
   const [bidBuffer, setBidBuffer] = useState("");
   const [minBid, setMinBid] = useState("");
   const [buyoutBid, setBuyoutBid] = useState("");
+  const [approved, setApproved] = useState(false);
+
+  useEffect(() => {
+    const checkApproval = async () => {
+      if (!account || !tokenAddress) return;
+      try {
+        const contract = getContract({
+          address: tokenAddress as `0x${string}`,
+          chain,
+          client,
+        });
+        let isApproved = await isApprovedForAll721({
+          contract,
+          owner: account.address,
+          operator: marketplaceContract.address,
+        });
+        if (!isApproved) {
+          isApproved = await isApprovedForAll1155({
+            contract,
+            owner: account.address,
+            operator: marketplaceContract.address,
+          });
+        }
+        setApproved(isApproved);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    checkApproval();
+  }, [account, tokenAddress]);
 
   return (
     <main className="bg-base-400 h-screen w-screen">
@@ -145,6 +184,50 @@ export default function CreateAuctionPage() {
         <div className="flex justify-end pt-2">
           {!account ? (
             <ConnectButton client={client} />
+          ) : !approved ? (
+            <TransactionButton
+              transaction={() => {
+                const contract = getContract({
+                  address: tokenAddress as `0x${string}`,
+                  chain,
+                  client,
+                });
+                return approve721({
+                  contract,
+                  operator: marketplaceContract.address,
+                  approved: true,
+                });
+              }}
+              className="!btn !btn-primary !btn-sm"
+              onTransactionSent={() => toast.loading("Approving token...")}
+              onTransactionConfirmed={() => {
+                toast.dismiss();
+                toast.success("Token approved");
+                setApproved(true);
+              }}
+              onError={async () => {
+                try {
+                  const contract = getContract({
+                    address: tokenAddress as `0x${string}`,
+                    chain,
+                    client,
+                  });
+                  await approve1155({
+                    contract,
+                    operator: marketplaceContract.address,
+                    approved: true,
+                  });
+                  setApproved(true);
+                  toast.dismiss();
+                  toast.success("Token approved");
+                } catch (err) {
+                  toast.dismiss();
+                  toast.error((err as Error).message);
+                }
+              }}
+            >
+              Approve
+            </TransactionButton>
           ) : (
             <TransactionButton
               transaction={() =>
