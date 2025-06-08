@@ -56,9 +56,10 @@ export async function GET(request: NextRequest) {
         if (errorData.errors) {
           console.error("GraphQL errors:", errorData.errors);
         }
-      } catch (e) {
+      } catch (e: unknown) {
+        const error = e as Error;
         // Not JSON, log raw text
-        console.error("Zapper API error:", errorText);
+        console.error("Zapper API error:", error);
       }
       
       return NextResponse.json({ 

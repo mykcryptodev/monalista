@@ -3,6 +3,48 @@ import { getCache, setCache } from "~/lib/cache";
 
 const ZAPPER_URL = "https://public.zapper.xyz/graphql";
 
+// Define types for the GraphQL response
+type NftNode = {
+  tokenId: string;
+  name?: string | null;
+  description?: string | null;
+  collection: {
+    name?: string | null;
+    address: string;
+    network?: string | null;
+  };
+  mediasV3?: {
+    images?: {
+      edges?: Array<{
+        node?: {
+          thumbnail?: string | null;
+        };
+      }>;
+    };
+  };
+};
+
+type NftEdge = {
+  node: NftNode;
+  balance?: string | number;
+};
+
+type NftUsersTokensResponse = {
+  data?: {
+    nftUsersTokens?: {
+      edges: NftEdge[];
+      pageInfo: {
+        hasNextPage: boolean;
+        endCursor?: string | null;
+      };
+    };
+  };
+  errors?: Array<{
+    message: string;
+    [key: string]: unknown;
+  }>;
+};
+
 const NFT_QUERY = `
 query UserNftTokens(
   $owners: [Address!]!
@@ -93,9 +135,10 @@ export async function GET(request: NextRequest) {
         if (errorData.errors) {
           console.error("GraphQL errors:", errorData.errors);
         }
-      } catch (e) {
+      } catch (e: unknown) {
+        const error = e as Error;
         // Not JSON, log raw text
-        console.error("Zapper API error:", errorText);
+        console.error("Zapper API error:", error);
       }
       
       return NextResponse.json({ 
@@ -104,7 +147,7 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
     
-    const json = await resp.json();
+    const json = await resp.json() as NftUsersTokensResponse;
     
     // Check for GraphQL errors
     if (json.errors) {
@@ -118,7 +161,7 @@ export async function GET(request: NextRequest) {
     const edges = json.data?.nftUsersTokens?.edges || [];
     const pageInfo = json.data?.nftUsersTokens?.pageInfo || { hasNextPage: false };
     
-    const nfts = edges.map((edge: any) => {
+    const nfts = edges.map((edge: NftEdge) => {
       const token = edge.node;
       const imageEdge = token.mediasV3?.images?.edges?.[0];
       const image = imageEdge?.node?.thumbnail || null;
