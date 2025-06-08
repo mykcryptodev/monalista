@@ -6,8 +6,6 @@ import {
   ConnectButton,
   TransactionButton,
   useActiveAccount,
-  TokenProvider,
-  TokenIcon,
 } from "thirdweb/react";
 import { createAuction } from "thirdweb/extensions/marketplace";
 import {
@@ -15,7 +13,7 @@ import {
   client,
   marketplaceContract,
 } from "~/constants";
-import { getContract } from "thirdweb";
+import { getContract, NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS } from "thirdweb";
 import { isApprovedForAll as isApprovedForAll721 } from "thirdweb/extensions/erc721";
 import { isApprovedForAll as isApprovedForAll1155 } from "thirdweb/extensions/erc1155";
 import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
@@ -23,7 +21,6 @@ import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
 import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
 import { TokenDropdown, type OwnedToken } from "~/app/components/TokenDropdown";
-import TokenIconFallback from "~/app/components/TokenIconFallback";
 
 export default function CreateAuctionPage() {
   const account = useActiveAccount();
@@ -92,18 +89,6 @@ export default function CreateAuctionPage() {
             <span className="label-text">Currency</span>
           </label>
           <TokenDropdown onSelect={setSelectedToken} />
-          {currencyAddress && (
-            <div className="mt-2">
-              <TokenProvider address={currencyAddress as `0x${string}`} client={client} chain={chain}>
-                <TokenIcon
-                  className="w-6 h-6"
-                  iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${currencyAddress}`}
-                  loadingComponent={<TokenIconFallback />}
-                  fallbackComponent={<TokenIconFallback />}
-                />
-              </TokenProvider>
-            </div>
-          )}
         </div>
         <div>
           <label className="label py-0">
@@ -151,7 +136,7 @@ export default function CreateAuctionPage() {
         </div>
         <div>
           <label className="label py-0">
-            <span className="label-text">Minimum Bid</span>
+            <span className="label-text">Minimum Bid (ETH)</span>
           </label>
           <input
             type="text"
@@ -162,7 +147,7 @@ export default function CreateAuctionPage() {
         </div>
         <div>
           <label className="label py-0">
-            <span className="label-text">Buyout Bid</span>
+            <span className="label-text">Buyout Bid (ETH)</span>
           </label>
           <input
             type="text"
@@ -226,10 +211,11 @@ export default function CreateAuctionPage() {
                   assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
                   tokenId: BigInt(selectedNft!.id),
                   quantity: quantity ? BigInt(quantity) : undefined,
-                  currencyContractAddress:
-                    selectedToken && selectedToken.tokenAddress !== "native"
-                      ? (selectedToken.tokenAddress as `0x${string}`)
-                      : undefined,
+                  currencyContractAddress: selectedToken 
+                    ? selectedToken.tokenAddress === ZERO_ADDRESS
+                      ? NATIVE_TOKEN_ADDRESS
+                      : (selectedToken.tokenAddress as `0x${string}`)
+                    : undefined,
                   startTimestamp: startTime ? new Date(startTime) : undefined,
                   endTimestamp: endTime ? new Date(endTime) : undefined,
                   timeBufferInSeconds: timeBuffer ? Number(timeBuffer) : undefined,
@@ -238,7 +224,7 @@ export default function CreateAuctionPage() {
                   buyoutBidAmount: buyoutBid,
                 })
               }
-              disabled={!selectedNft || !selectedToken}
+              disabled={!selectedNft}
               className="!btn !btn-primary !btn-sm"
               onTransactionSent={() => toast.loading("Creating auction...")}
               onTransactionConfirmed={() => {

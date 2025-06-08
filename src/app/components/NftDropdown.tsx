@@ -41,12 +41,26 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
     fetch(`/api/nfts?address=${account.address}&page=${page}`)
       .then((res) => res.json())
       .then((data) => {
-        setNfts((prev) => [...prev, ...data.nfts]);
-        if (!data.hasMore) {
+        if (data.error) {
+          console.error('Failed to fetch NFTs:', data.error);
+          setHasMore(false);
+          return;
+        }
+        
+        if (data.nfts && Array.isArray(data.nfts)) {
+          setNfts((prev) => [...prev, ...data.nfts]);
+          if (!data.hasMore) {
+            setHasMore(false);
+          }
+        } else {
+          console.error('Invalid response format:', data);
           setHasMore(false);
         }
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error('Error fetching NFTs:', error);
+        setHasMore(false);
+      })
       .finally(() => setLoading(false));
   }, [account, page, hasMore]);
 

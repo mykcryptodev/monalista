@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCache, setCache } from "~/lib/cache";
 import { chain } from "~/constants";
 
-const ZAPPER_URL = "https://api.zapper.xyz/v2/graphql";
+const ZAPPER_URL = "https://public.zapper.xyz/graphql";
 
 export type OwnedToken = {
   tokenAddress: string;
@@ -41,17 +41,42 @@ export async function GET(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "zapper-api-key": process.env.ZAPPER_API_KEY as string,
+        "x-zapper-api-key": process.env.ZAPPER_API_KEY as string,
       },
       body: JSON.stringify({ query: TOKEN_QUERY, variables }),
     });
 
     if (!resp.ok) {
-      console.error(await resp.text());
-      return NextResponse.json({ error: "failed to fetch tokens" }, { status: 500 });
+      const errorText = await resp.text();
+      console.error("Zapper API error:", resp.status, errorText);
+      
+      // Try to parse error response
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.errors) {
+          console.error("GraphQL errors:", errorData.errors);
+        }
+      } catch (e) {
+        // Not JSON, log raw text
+      }
+      
+      return NextResponse.json({ 
+        error: `Failed to fetch tokens: ${resp.status} ${resp.statusText}`,
+        details: errorText 
+      }, { status: 500 });
     }
 
     const json = await resp.json();
+    
+    // Check for GraphQL errors
+    if (json.errors) {
+      console.error("GraphQL errors:", json.errors);
+      return NextResponse.json({ 
+        error: "GraphQL query failed",
+        details: json.errors 
+      }, { status: 500 });
+    }
+    
     type ZapperTokenEdge = {
       node: {
         symbol: string;
@@ -97,14 +122,17 @@ export async function GET(request: NextRequest) {
         });
       }
     } catch (e) {
-      console.error(e);
+      console.error("Error fetching native balance:", e);
     }
 
     const data = { tokens };
     await setCache(cacheKey, data, { ex: 60 });
     return NextResponse.json(data);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "failed to fetch tokens" }, { status: 500 });
+    console.error("Unexpected error:", err);
+    return NextResponse.json({ 
+      error: "Failed to fetch tokens",
+      details: err instanceof Error ? err.message : "Unknown error"
+    }, { status: 500 });
   }
 }
