@@ -29,6 +29,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
+import { parseUnits } from "~/lib/units";
 
 export default function AuctionPage() {
   const params = useParams();
@@ -39,6 +40,8 @@ export default function AuctionPage() {
   const [error, setError] = useState<string | null>(null);
   const account = useActiveAccount();
   const [hasAllowance, setHasAllowance] = useState(false);
+  const [bidModalOpen, setBidModalOpen] = useState(false);
+  const [bidAmount, setBidAmount] = useState("");
   const isNativeToken = (address: string) =>
     address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
 
@@ -60,14 +63,24 @@ export default function AuctionPage() {
           owner: account.address,
           spender: marketplaceContract.address,
         });
-        setHasAllowance(value >= BigInt(auction.minimumBidAmount));
+        const amountWei = parseUnits(
+          bidAmount || auction.minimumBidCurrencyValue.displayValue,
+          auction.minimumBidCurrencyValue.decimals ?? 18,
+        );
+        setHasAllowance(value >= amountWei);
       } catch (err) {
         console.error(err);
         setHasAllowance(false);
       }
     };
     checkAllowance();
-  }, [account, auction]);
+  }, [account, auction, bidAmount]);
+
+  useEffect(() => {
+    if (auction) {
+      setBidAmount(auction.minimumBidCurrencyValue.displayValue);
+    }
+  }, [auction]);
 
   useEffect(() => {
     const fetchAuction = async () => {
@@ -122,6 +135,12 @@ export default function AuctionPage() {
     client,
     address: auction.asset.tokenAddress as `0x${string}`,
   });
+
+  const minBidDisplay = auction.minimumBidCurrencyValue.displayValue;
+  const decimals = auction.minimumBidCurrencyValue.decimals ?? 18;
+  const minBidNumeric = parseFloat(minBidDisplay);
+  const bidNumeric = parseFloat(bidAmount);
+  const isBidValid = bidAmount !== "" && !isNaN(bidNumeric) && bidNumeric >= minBidNumeric;
 
   return (
     <main className="bg-base-400 h-screen w-screen">
@@ -233,65 +252,12 @@ export default function AuctionPage() {
                   <ConnectButton client={client} />
                 ) : (
                   <>
-                    {hasAllowance ? (
-                      <TransactionButton
-                        transaction={() =>
-                          bidInAuction({
-                            contract: marketplaceContract,
-                            auctionId: BigInt(auction.id),
-                            bidAmountWei: BigInt(auction.minimumBidAmount),
-                          })
-                        }
-                        className="!btn !btn-primary !btn-sm"
-                        onTransactionSent={() => {
-                          toast.loading("Placing bid...");
-                        }}
-                        onTransactionConfirmed={() => {
-                          toast.dismiss();
-                          toast.success("Bid placed!");
-                          fetch("/api/cache/invalidate", {
-                            method: "POST",
-                            body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
-                          });
-                        }}
-                        onError={(error) => {
-                          toast.dismiss();
-                          toast.error(error.message);
-                        }}
-                      >
-                        Bid
-                      </TransactionButton>
-                    ) : (
-                      <TransactionButton
-                        transaction={() => {
-                          const erc20 = getContract({
-                            address: auction.currencyContractAddress as `0x${string}`,
-                            chain,
-                            client,
-                          });
-                          return approve({
-                            contract: erc20,
-                            spender: marketplaceContract.address,
-                            amountWei: BigInt(auction.minimumBidAmount),
-                          });
-                        }}
-                        className="!btn !btn-primary !btn-sm"
-                        onTransactionSent={() => {
-                          toast.loading("Approving currency...");
-                        }}
-                        onTransactionConfirmed={() => {
-                          toast.dismiss();
-                          toast.success("Currency approved");
-                          setHasAllowance(true);
-                        }}
-                        onError={(error) => {
-                          toast.dismiss();
-                          toast.error(error.message);
-                        }}
-                      >
-                        Approve
-                      </TransactionButton>
-                    )}
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setBidModalOpen(true)}
+                    >
+                      Bid
+                    </button>
                     <TransactionButton
                       transaction={() =>
                         buyoutAuction({
@@ -352,6 +318,101 @@ export default function AuctionPage() {
             </div>
           </div>
         </NFTProvider>
+        {bidModalOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box space-y-2">
+              <h3 className="font-bold text-lg">Place Bid</h3>
+              <p className="text-sm">
+                Minimum Next Bid: {minBidDisplay} {auction.minimumBidCurrencyValue.symbol}
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="any"
+                  value={bidAmount}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  className={`input input-bordered input-sm flex-1 ${bidAmount && !isBidValid ? "input-error" : ""}`}
+                />
+                <button
+                  className="btn btn-xs"
+                  onClick={() => setBidAmount(minBidDisplay)}
+                >
+                  Use Min
+                </button>
+              </div>
+              {!isBidValid && bidAmount && (
+                <p className="text-error text-xs">Bid must be at least {minBidDisplay} {auction.minimumBidCurrencyValue.symbol}</p>
+              )}
+              <div className="modal-action">
+                <button className="btn btn-sm" onClick={() => setBidModalOpen(false)}>
+                  Close
+                </button>
+                {hasAllowance ? (
+                  <TransactionButton
+                    transaction={() =>
+                      bidInAuction({
+                        contract: marketplaceContract,
+                        auctionId: BigInt(auction.id),
+                        bidAmountWei: parseUnits(bidAmount, decimals),
+                      })
+                    }
+                    disabled={!isBidValid}
+                    className="!btn !btn-primary !btn-sm"
+                    onTransactionSent={() => {
+                      toast.loading("Placing bid...");
+                    }}
+                    onTransactionConfirmed={() => {
+                      setBidModalOpen(false);
+                      toast.dismiss();
+                      toast.success("Bid placed!");
+                      fetch("/api/cache/invalidate", {
+                        method: "POST",
+                        body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
+                      });
+                    }}
+                    onError={(error) => {
+                      toast.dismiss();
+                      toast.error(error.message);
+                    }}
+                  >
+                    Bid
+                  </TransactionButton>
+                ) : (
+                  <TransactionButton
+                    transaction={() => {
+                      const erc20 = getContract({
+                        address: auction.currencyContractAddress as `0x${string}`,
+                        chain,
+                        client,
+                      });
+                      return approve({
+                        contract: erc20,
+                        spender: marketplaceContract.address,
+                        amountWei: parseUnits(bidAmount, decimals),
+                      });
+                    }}
+                    disabled={!isBidValid}
+                    className="!btn !btn-primary !btn-sm"
+                    onTransactionSent={() => {
+                      toast.loading("Approving currency...");
+                    }}
+                    onTransactionConfirmed={() => {
+                      toast.dismiss();
+                      toast.success("Currency approved");
+                      setHasAllowance(true);
+                    }}
+                    onError={(error) => {
+                      toast.dismiss();
+                      toast.error(error.message);
+                    }}
+                  >
+                    Approve
+                  </TransactionButton>
+                )}
+              </div>
+            </div>
+          </dialog>
+        )}
       </div>
     </main>
   );
