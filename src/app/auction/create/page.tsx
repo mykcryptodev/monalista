@@ -6,6 +6,8 @@ import {
   ConnectButton,
   TransactionButton,
   useActiveAccount,
+  TokenProvider,
+  TokenIcon,
 } from "thirdweb/react";
 import { createAuction } from "thirdweb/extensions/marketplace";
 import {
@@ -21,6 +23,7 @@ import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
 import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
 import { TokenDropdown, type OwnedToken } from "~/app/components/TokenDropdown";
+import TokenIconFallback from "~/app/components/TokenIconFallback";
 
 export default function CreateAuctionPage() {
   const account = useActiveAccount();
@@ -89,6 +92,18 @@ export default function CreateAuctionPage() {
             <span className="label-text">Currency</span>
           </label>
           <TokenDropdown onSelect={setSelectedToken} />
+          {currencyAddress && (
+            <div className="mt-2">
+              <TokenProvider address={currencyAddress as `0x${string}`} client={client} chain={chain}>
+                <TokenIcon
+                  className="w-6 h-6"
+                  iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${currencyAddress}`}
+                  loadingComponent={<TokenIconFallback />}
+                  fallbackComponent={<TokenIconFallback />}
+                />
+              </TokenProvider>
+            </div>
+          )}
         </div>
         <div>
           <label className="label py-0">
@@ -230,7 +245,7 @@ export default function CreateAuctionPage() {
                 toast.dismiss();
                 toast.success("Auction created!");
               }}
-              onError={(err) => {
+              onError={(err: Error) => {
                 toast.dismiss();
                 toast.error(err.message);
               }}

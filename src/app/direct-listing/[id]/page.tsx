@@ -5,18 +5,22 @@ import { useEffect, useState } from "react";
 import { getContract } from "thirdweb";
 import { type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
 import { 
-  NFTProvider, 
-  NFTMedia, 
-  NFTName, 
+  NFTProvider,
+  NFTMedia,
+  NFTName,
   NFTDescription,
   TransactionButton,
   useActiveAccount,
-  ConnectButton
+  ConnectButton,
+  TokenProvider,
+  TokenIcon
 } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import Link from "next/link";
 import { Account } from "~/app/components/Account";
+import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
+import TokenIconFallback from "~/app/components/TokenIconFallback";
 
 export default function DirectListingPage() {
   const params = useParams();
@@ -50,7 +54,7 @@ export default function DirectListingPage() {
   if (loading) {
     return (
       <main className="bg-base-400 h-screen w-screen">
-        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full">
+        <div className="mx-auto p-4 bg-base-300 rounded-lg h-full">
           <div className="flex justify-center items-center h-full">
             <span className="loading loading-spinner loading-lg"></span>
           </div>
@@ -62,7 +66,7 @@ export default function DirectListingPage() {
   if (error || !listing) {
     return (
       <main className="bg-base-400 h-screen w-screen">
-        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full">
+        <div className="mx-auto p-4 bg-base-300 rounded-lg h-full">
           <div className="flex flex-col justify-center items-center h-full gap-4">
             <p className="text-error">{error || "Listing not found"}</p>
             <Link href="/" className="btn btn-sm">
@@ -82,7 +86,7 @@ export default function DirectListingPage() {
 
   return (
     <main className="bg-base-400 h-screen w-screen">
-      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full overflow-y-auto">
+      <div className="mx-auto p-4 bg-base-300 rounded-lg h-full overflow-y-auto">
         <div className="mb-4">
           <Link href="/" className="btn btn-sm btn-ghost">
             ← Back
@@ -105,7 +109,21 @@ export default function DirectListingPage() {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="font-semibold">Price:</span>
-                  <span>{listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}</span>
+                  <span className="flex items-center gap-1">
+                    <TokenProvider
+                      address={listing.currencyContractAddress as `0x${string}`}
+                      client={client}
+                      chain={chain}
+                    >
+                      <TokenIcon
+                        className="w-4 h-4"
+                        iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${listing.currencyContractAddress}`}
+                        loadingComponent={<TokenIconFallback />}
+                        fallbackComponent={<TokenIconFallback />}
+                      />
+                    </TokenProvider>
+                    {listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Token ID:</span>
@@ -114,6 +132,10 @@ export default function DirectListingPage() {
                 <div className="flex justify-between">
                   <span className="font-semibold">Quantity:</span>
                   <span>{listing.quantity.toString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Ends in:</span>
+                  <Countdown endTimeInSeconds={listing.endTimeInSeconds} />
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Seller:</span>
@@ -146,7 +168,7 @@ export default function DirectListingPage() {
                         body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
                       });
                     }}
-                    onError={(error) => {
+                    onError={(error: Error) => {
                       toast.dismiss();
                       toast.error(error.message);
                     }}
@@ -174,7 +196,7 @@ export default function DirectListingPage() {
                         body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
                       });
                     }}
-                    onError={(error) => {
+                    onError={(error: Error) => {
                       toast.dismiss();
                       toast.error(error.message);
                     }}
