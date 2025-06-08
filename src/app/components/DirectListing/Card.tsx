@@ -28,11 +28,11 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
-        <figure className="relative">
+        <div className="flex justify-end p-1">
+          <Countdown endTimeInSeconds={listing.endTimeInSeconds} />
+        </div>
+        <figure>
           <NFTMedia />
-          <div className="absolute top-1 right-1">
-            <Countdown endTimeInSeconds={listing.endTimeInSeconds} />
-          </div>
         </figure>
         <div className="card-body p-2 gap-1">
           <h2 className="text-sm font-semibold truncate block w-full">{listing.asset.metadata.name}</h2>
