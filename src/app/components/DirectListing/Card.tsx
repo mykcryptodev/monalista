@@ -22,10 +22,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
   };
 
   return (
-    <NFTProvider
-      contract={contract}
-      tokenId={listing.asset.id.toString()}
-    >
+    <NFTProvider contract={contract} tokenId={listing.asset.id}>
       <div 
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
