@@ -31,6 +31,7 @@ import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
 import { toTokens, toUnits } from "thirdweb/utils";
+import { getWalletBalance } from "thirdweb/wallets";
 
 export default function AuctionPage() {
   const params = useParams();
@@ -44,6 +45,9 @@ export default function AuctionPage() {
   const [bidModalOpen, setBidModalOpen] = useState(false);
   const [showPayEmbed, setShowPayEmbed] = useState(false);
   const [buyoutModalOpen, setBuyoutModalOpen] = useState(false);
+  const [showBuyoutPayEmbed, setShowBuyoutPayEmbed] = useState(false);
+  const [bidAmount, setBidAmount] = useState("");
+  const [userBalance, setUserBalance] = useState<bigint>(0n);
   const isNativeToken = (address: string) =>
     address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
 
@@ -67,6 +71,12 @@ export default function AuctionPage() {
   );
 
   useEffect(() => {
+    if (auction) {
+      setBidAmount(minBidDisplay);
+    }
+  }, [auction, minBidDisplay]);
+
+  useEffect(() => {
     const checkAllowance = async () => {
       if (!account || !auction) return;
       if (isNativeToken(auction.currencyContractAddress)) {
@@ -84,14 +94,36 @@ export default function AuctionPage() {
           owner: account.address,
           spender: marketplaceContract.address,
         });
-        setHasAllowance(value >= minNextBidWei);
+        const amountWei = toUnits(bidAmount || minBidDisplay, decimals);
+        setHasAllowance(value >= amountWei);
       } catch (err) {
         console.error(err);
         setHasAllowance(false);
       }
     };
     checkAllowance();
-  }, [account, auction, minNextBidWei]);
+  }, [account, auction, minNextBidWei, bidAmount, minBidDisplay, decimals]);
+
+  useEffect(() => {
+    const checkBalance = async () => {
+      if (!account || !auction) return;
+      try {
+        const balance = await getWalletBalance({
+          address: account.address,
+          client,
+          chain,
+          tokenAddress: isNativeToken(auction.currencyContractAddress) 
+            ? undefined 
+            : auction.currencyContractAddress,
+        });
+        setUserBalance(balance.value);
+      } catch (err) {
+        console.error("Error checking balance:", err);
+        setUserBalance(0n);
+      }
+    };
+    checkBalance();
+  }, [account, auction]);
 
   useEffect(() => {
     const fetchAuction = async () => {
@@ -113,6 +145,39 @@ export default function AuctionPage() {
       fetchAuction();
     }
   }, [auctionId]);
+
+  // Common success handlers
+  const handleBidSuccess = () => {
+    toast.success("Bid placed!");
+    fetch("/api/cache/invalidate", {
+      method: "POST",
+      body: JSON.stringify({ keys: [`auction:${auction!.id}`] }),
+    });
+    setBidModalOpen(false);
+    setShowPayEmbed(false);
+  };
+
+  const handleBuyoutSuccess = () => {
+    toast.success("Auction bought out!");
+    fetch("/api/cache/invalidate", {
+      method: "POST",
+      body: JSON.stringify({ keys: ["auctions", `auction:${auction!.id}`] }),
+    });
+    setBuyoutModalOpen(false);
+    setShowBuyoutPayEmbed(false);
+  };
+
+  // Transaction generators
+  const getBidTransaction = () => bidInAuction({
+    contract: marketplaceContract,
+    auctionId: BigInt(auction!.id),
+    bidAmountWei: bidAmountWei,
+  });
+
+  const getBuyoutTransaction = () => buyoutAuction({
+    contract: marketplaceContract,
+    auctionId: BigInt(auction!.id),
+  });
 
   if (loading) {
     return (
@@ -146,6 +211,11 @@ export default function AuctionPage() {
     client,
     address: auction.asset.tokenAddress as `0x${string}`,
   });
+
+  const bidAmountWei = toUnits(bidAmount || "0", decimals);
+  const isBidValid = bidAmount !== "" && bidAmountWei >= minNextBidWei;
+  const hasSufficientBalanceForBid = userBalance >= bidAmountWei;
+  const hasSufficientBalanceForBuyout = userBalance >= BigInt(auction?.buyoutCurrencyValue?.value || 0);
 
   return (
     <main className="bg-base-400 h-screen w-screen">
@@ -312,47 +382,118 @@ export default function AuctionPage() {
               <p className="py-4">
                 Minimum bid: {minBidDisplay} {auction.minimumBidCurrencyValue.symbol}
               </p>
+              <div className="form-control mb-4">
+                <label className="label">
+                  <span className="label-text">Bid Amount</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    step="any"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    className={`input input-bordered flex-1 ${bidAmount && !isBidValid ? "input-error" : ""}`}
+                    placeholder={minBidDisplay}
+                  />
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => setBidAmount(minBidDisplay)}
+                  >
+                    Use Min
+                  </button>
+                </div>
+                {!isBidValid && bidAmount && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">
+                      Bid must be at least {minBidDisplay} {auction.minimumBidCurrencyValue.symbol}
+                    </span>
+                  </label>
+                )}
+              </div>
               <div className="modal-action">
                 <button className="btn btn-sm" onClick={() => setBidModalOpen(false)}>
                   Cancel
                 </button>
                 {hasAllowance ? (
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => setShowPayEmbed(true)}
-                  >
-                    Place Bid
-                  </button>
+                  <>
+                    {hasSufficientBalanceForBid ? (
+                      <TransactionButton
+                        transaction={getBidTransaction}
+                        className="!btn !btn-primary !btn-sm"
+                        disabled={!isBidValid}
+                        onTransactionSent={() => {
+                          toast.loading("Placing bid...");
+                        }}
+                        onTransactionConfirmed={() => {
+                          toast.dismiss();
+                          handleBidSuccess();
+                        }}
+                        onError={(error) => {
+                          toast.dismiss();
+                          toast.error(error.message);
+                        }}
+                      >
+                        Place Bid
+                      </TransactionButton>
+                    ) : (
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => {
+                          setShowPayEmbed(true);
+                          setBidModalOpen(false);
+                        }}
+                        disabled={!isBidValid}
+                      >
+                        Pay with any crypto
+                      </button>
+                    )}
+                  </>
                 ) : (
-                  <TransactionButton
-                    transaction={() => {
-                      const erc20 = getContract({
-                        address: auction.currencyContractAddress as `0x${string}`,
-                        chain,
-                        client,
-                      });
-                      return approve({
-                        contract: erc20,
-                        spender: marketplaceContract.address,
-                        amountWei: minNextBidWei,
-                      });
-                    }}
-                    className="!btn !btn-primary !btn-sm"
-                    onTransactionSent={() => {
-                      toast.loading("Approving currency...");
-                    }}
-                    onTransactionConfirmed={() => {
-                      toast.dismiss();
-                      toast.success("Currency approved");
-                      setHasAllowance(true);
-                    }}
-                    onError={(error) => {
-                      toast.dismiss();
-                      toast.error(error.message);
-                    }}
-                  >
-                    Approve to Bid
-                  </TransactionButton>
+                  <>
+                    {hasSufficientBalanceForBid ? (
+                      <TransactionButton
+                        transaction={() => {
+                          const erc20 = getContract({
+                            address: auction.currencyContractAddress as `0x${string}`,
+                            chain,
+                            client,
+                          });
+                          return approve({
+                            contract: erc20,
+                            spender: marketplaceContract.address,
+                            amountWei: bidAmountWei,
+                          });
+                        }}
+                        className="!btn !btn-primary !btn-sm"
+                        disabled={!isBidValid}
+                        onTransactionSent={() => {
+                          toast.loading("Approving currency...");
+                        }}
+                        onTransactionConfirmed={() => {
+                          toast.dismiss();
+                          toast.success("Currency approved");
+                          setHasAllowance(true);
+                        }}
+                        onError={(error) => {
+                          toast.dismiss();
+                          toast.error(error.message);
+                        }}
+                      >
+                        Approve to Bid
+                      </TransactionButton>
+                    ) : (
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => {
+                          setShowPayEmbed(true);
+                          setBidModalOpen(false);
+                        }}
+                        disabled={!isBidValid}
+                      >
+                        Pay with any crypto
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -364,13 +505,15 @@ export default function AuctionPage() {
 
         {/* PayEmbed for Bid */}
         {showPayEmbed && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
-            <div className="relative">
+          <div 
+            className="fixed inset-0 z-50 grid place-items-center bg-black/50"
+            onClick={() => setShowPayEmbed(false)}
+          >
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
-                className="btn btn-xs btn-circle absolute right-2 top-2"
+                className="btn btn-xs btn-circle absolute right-2 top-2 z-10"
                 onClick={() => {
                   setShowPayEmbed(false);
-                  setBidModalOpen(false);
                 }}
               >
                 ✕
@@ -379,34 +522,93 @@ export default function AuctionPage() {
                 client={client}
                 payOptions={{
                   mode: "transaction",
-                  transaction: bidInAuction({
-                    contract: marketplaceContract,
-                    auctionId: BigInt(auction.id),
-                    bidAmountWei: minNextBidWei,
-                  }),
+                  transaction: getBidTransaction(),
                   metadata: auction.asset.metadata,
-                  onPurchaseSuccess: () => {
-                    toast.success("Bid placed!");
-                    fetch("/api/cache/invalidate", {
-                      method: "POST",
-                      body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
-                    });
-                    setShowPayEmbed(false);
-                    setBidModalOpen(false);
+                  buyWithCrypto: {
+                    prefillSource: {
+                      chain: chain,
+                      token: isNativeToken(auction.currencyContractAddress)
+                        ? undefined
+                        : {
+                            address: auction.currencyContractAddress,
+                            name: auction.minimumBidCurrencyValue.name,
+                            symbol: auction.minimumBidCurrencyValue.symbol,
+                            icon: `/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`,
+                          },
+                      allowEdits: {
+                        chain: false,
+                        token: false,
+                      },
+                    },
                   },
+                  onPurchaseSuccess: handleBidSuccess,
                 }}
               />
             </div>
           </div>
         )}
 
-        {/* Buyout Modal with PayEmbed */}
+        {/* Buyout Modal */}
         {buyoutModalOpen && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
-            <div className="relative">
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Buyout Auction</h3>
+              <p className="py-4">
+                Buyout price: {auction.buyoutCurrencyValue.displayValue} {auction.buyoutCurrencyValue.symbol}
+              </p>
+              <div className="modal-action">
+                <button className="btn btn-sm" onClick={() => setBuyoutModalOpen(false)}>
+                  Cancel
+                </button>
+                {hasSufficientBalanceForBuyout ? (
+                  <TransactionButton
+                    transaction={getBuyoutTransaction}
+                    className="!btn !btn-secondary !btn-sm"
+                    onTransactionSent={() => {
+                      toast.loading("Buying out auction...");
+                    }}
+                    onTransactionConfirmed={() => {
+                      toast.dismiss();
+                      handleBuyoutSuccess();
+                    }}
+                    onError={(error: Error) => {
+                      toast.dismiss();
+                      toast.error(error.message);
+                    }}
+                  >
+                    Buyout
+                  </TransactionButton>
+                ) : (
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => {
+                      setShowBuyoutPayEmbed(true);
+                      setBuyoutModalOpen(false);
+                    }}
+                  >
+                    Pay with any crypto
+                  </button>
+                )}
+              </div>
+            </div>
+            <form method="dialog" className="modal-backdrop">
+              <button onClick={() => setBuyoutModalOpen(false)}>close</button>
+            </form>
+          </dialog>
+        )}
+
+        {/* PayEmbed for Buyout */}
+        {showBuyoutPayEmbed && (
+          <div 
+            className="fixed inset-0 z-50 grid place-items-center bg-black/50"
+            onClick={() => setShowBuyoutPayEmbed(false)}
+          >
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
-                className="btn btn-xs btn-circle absolute right-2 top-2"
-                onClick={() => setBuyoutModalOpen(false)}
+                className="btn btn-xs btn-circle absolute right-2 top-2 z-10"
+                onClick={() => {
+                  setShowBuyoutPayEmbed(false);
+                }}
               >
                 ✕
               </button>
@@ -414,19 +616,26 @@ export default function AuctionPage() {
                 client={client}
                 payOptions={{
                   mode: "transaction",
-                  transaction: buyoutAuction({
-                    contract: marketplaceContract,
-                    auctionId: BigInt(auction.id),
-                  }),
+                  transaction: getBuyoutTransaction(),
                   metadata: auction.asset.metadata,
-                  onPurchaseSuccess: () => {
-                    toast.success("Auction bought out!");
-                    fetch("/api/cache/invalidate", {
-                      method: "POST",
-                      body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
-                    });
-                    setBuyoutModalOpen(false);
+                  buyWithCrypto: {
+                    prefillSource: {
+                      chain: chain,
+                      token: isNativeToken(auction.currencyContractAddress)
+                        ? undefined
+                        : {
+                            address: auction.currencyContractAddress,
+                            name: auction.buyoutCurrencyValue.name,
+                            symbol: auction.buyoutCurrencyValue.symbol,
+                            icon: `/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`,
+                          },
+                      allowEdits: {
+                        chain: false,
+                        token: false,
+                      },
+                    },
                   },
+                  onPurchaseSuccess: handleBuyoutSuccess,
                 }}
               />
             </div>
@@ -436,3 +645,5 @@ export default function AuctionPage() {
     </main>
   );
 }
+
+
