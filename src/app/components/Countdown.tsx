@@ -6,6 +6,8 @@ interface Props {
 
 type TimeLeft = {
   total: number;
+  years: number;
+  months: number;
   days: number;
   hours: number;
   minutes: number;
@@ -17,17 +19,44 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
 
   const calculate = useCallback((): TimeLeft => {
     const diff = Math.max(end - Date.now(), 0);
-    const seconds = Math.floor(diff / 1000);
+    const totalSeconds = Math.floor(diff / 1000);
+    
+    // More accurate calculations
+    const secondsPerMinute = 60;
+    const secondsPerHour = 60 * secondsPerMinute;
+    const secondsPerDay = 24 * secondsPerHour;
+    const secondsPerMonth = 30 * secondsPerDay; // Approximate 30 days per month
+    const secondsPerYear = 365 * secondsPerDay; // Approximate 365 days per year
+    
+    const years = Math.floor(totalSeconds / secondsPerYear);
+    let remaining = totalSeconds - (years * secondsPerYear);
+    
+    const months = Math.floor(remaining / secondsPerMonth);
+    remaining = remaining - (months * secondsPerMonth);
+    
+    const days = Math.floor(remaining / secondsPerDay);
+    remaining = remaining - (days * secondsPerDay);
+    
+    const hours = Math.floor(remaining / secondsPerHour);
+    remaining = remaining - (hours * secondsPerHour);
+    
+    const minutes = Math.floor(remaining / secondsPerMinute);
+    const seconds = remaining - (minutes * secondsPerMinute);
+    
     return {
       total: diff,
-      days: Math.floor(seconds / 86400),
-      hours: Math.floor((seconds % 86400) / 3600),
-      minutes: Math.floor((seconds % 3600) / 60),
-      seconds: seconds % 60,
+      years,
+      months,
+      days,
+      hours,
+      minutes,
+      seconds,
     };
   }, [end]);
 
   const [total, setTotal] = useState(0);
+  const [years, setYears] = useState(0);
+  const [months, setMonths] = useState(0);
   const [days, setDays] = useState(0);
   const [hours, setHours] = useState(0);
   const [minutes, setMinutes] = useState(0);
@@ -36,6 +65,8 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
   const update = useCallback(() => {
     const t = calculate();
     setTotal(t.total);
+    setYears(t.years);
+    setMonths(t.months);
     setDays(t.days);
     setHours(t.hours);
     setMinutes(t.minutes);
@@ -54,40 +85,39 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
 
   const pad = (n: number) => n.toString().padStart(2, "0");
 
+  // Determine which 3 units to show
+  const timeUnits = [
+    { value: years, label: 'y', name: 'years' },
+    { value: months, label: 'm', name: 'months' },
+    { value: days, label: 'd', name: 'days' },
+    { value: hours, label: 'h', name: 'hours' },
+    { value: minutes, label: 'm', name: 'minutes' },
+    { value: seconds, label: 's', name: 'seconds' }
+  ];
+
+  // Find the first non-zero unit
+  const firstNonZeroIndex = timeUnits.findIndex(unit => unit.value > 0);
+  
+  // Determine which 3 units to show
+  let unitsToShow;
+  if (firstNonZeroIndex === -1 || total <= 0) {
+    // If countdown is at 0 or expired, show last 3 units (h, m, s)
+    unitsToShow = timeUnits.slice(3, 6);
+  } else {
+    // Show 3 units starting from the first non-zero
+    // But make sure we don't go past the end of the array
+    const startIndex = Math.min(firstNonZeroIndex, 3); // Don't start beyond hours
+    unitsToShow = timeUnits.slice(startIndex, startIndex + 3);
+  }
+
   return (
-    <span className="countdown font-mono text-xs">
-      {days > 0 && (
-        <>
-          <span
-            style={{ "--value": days } as React.CSSProperties}
-            aria-live="polite"
-            aria-label={`${days} days`}
-          >
-            {pad(days)}
-          </span>d
-        </>
-      )}
-      <span
-        style={{ "--value": hours } as React.CSSProperties}
-        aria-live="polite"
-        aria-label={`${hours} hours`}
-      >
-        {pad(hours)}
-      </span>h
-      <span
-        style={{ "--value": minutes } as React.CSSProperties}
-        aria-live="polite"
-        aria-label={`${minutes} minutes`}
-      >
-        {pad(minutes)}
-      </span>m
-      <span
-        style={{ "--value": seconds } as React.CSSProperties}
-        aria-live="polite"
-        aria-label={`${seconds} seconds`}
-      >
-        {pad(seconds)}
-      </span>s
+    <span className="font-mono text-xs">
+      {unitsToShow.map((unit, index) => (
+        <span key={unit.name}>
+          {pad(unit.value)}{unit.label}
+          {index < unitsToShow.length - 1 && ' '}
+        </span>
+      ))}
     </span>
   );
 };
