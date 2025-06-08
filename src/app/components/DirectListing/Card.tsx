@@ -4,6 +4,7 @@ import { buyFromListing, type DirectListing } from "thirdweb/extensions/marketpl
 import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
+import { Account } from "~/app/components/Account";
 
 type Props = {
   listing: DirectListing;
@@ -23,10 +24,17 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
 
   return (
     <NFTProvider contract={contract} tokenId={BigInt(listing.asset.id)}>
-      <div 
+      <div
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
+        <div className="p-2 flex items-center text-xs">
+          <Account
+            address={listing.creatorAddress}
+            avatarClassName="w-4 h-4"
+            className="w-1/2 overflow-hidden"
+          />
+        </div>
         <figure>
           <NFTMedia className="nftmedia-hide-overlay" />
         </figure>
@@ -51,3 +59,4 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
     </NFTProvider>
   );
 };
+
