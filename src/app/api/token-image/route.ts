@@ -7,7 +7,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return Buffer.from(buffer).toString("base64");
 }
 
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
+function base64ToArrayBuffer(base64: string): Buffer {
   return Buffer.from(base64, "base64");
 }
 
