@@ -43,6 +43,7 @@ export default function SellPage() {
   const [buyoutBid, setBuyoutBid] = useState("");
   const [price, setPrice] = useState("");
   const [reserved, setReserved] = useState(false);
+  const [reservedAddress, setReservedAddress] = useState("");
   const [approved, setApproved] = useState(false);
 
   useEffect(() => {
@@ -187,6 +188,10 @@ export default function SellPage() {
                   <label className="label py-0">
                     <span className="label-text">Time Buffer (s)</span>
                   </label>
+                  <p className="text-xs mb-1">
+                    Extends the auction end when a bid is placed near the close
+                    time.
+                  </p>
                   <input
                     type="text"
                     value={timeBuffer}
@@ -198,6 +203,10 @@ export default function SellPage() {
                   <label className="label py-0">
                     <span className="label-text">Bid Buffer (bps)</span>
                   </label>
+                  <p className="text-xs mb-1">
+                    Minimum percentage step a new bid must exceed the current bi
+                    d.
+                  </p>
                   <input
                     type="text"
                     value={bidBuffer}
@@ -208,14 +217,25 @@ export default function SellPage() {
               </>
             )}
             {saleType === "listing" && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-sm"
-                  checked={reserved}
-                  onChange={(e) => setReserved(e.target.checked)}
-                />
-                <span className="label-text">Reserve listing</span>
+              <div className="space-y-1">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm"
+                    checked={reserved}
+                    onChange={(e) => setReserved(e.target.checked)}
+                  />
+                  <span className="label-text">Reserve listing</span>
+                </label>
+                {reserved && (
+                  <input
+                    type="text"
+                    value={reservedAddress}
+                    onChange={(e) => setReservedAddress(e.target.value)}
+                    placeholder="Buyer address"
+                    className="input input-bordered input-sm w-full"
+                  />
+                )}
               </div>
             )}
           </div>
@@ -283,6 +303,7 @@ export default function SellPage() {
                           : undefined,
                       endTimestamp: endTime ? new Date(endTime) : undefined,
                       isReservedListing: reserved,
+                      reservedListingAddress: reservedAddress || undefined,
                     })
                   : createAuction({
                       contract: marketplaceContract,
