@@ -27,7 +27,7 @@ async function tryFetchTokenImage(tokenAddress: string): Promise<{ imageBuffer: 
         return { imageBuffer, contentType };
       }
     }
-  } catch (err) {
+  } catch {
     // ignore and try next
   }
   try {
@@ -40,7 +40,7 @@ async function tryFetchTokenImage(tokenAddress: string): Promise<{ imageBuffer: 
         return { imageBuffer: buf, contentType };
       }
     }
-  } catch (err) {
+  } catch {
     // ignore
   }
   return null;
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     const res = await fetch(coingeckoUrl, { headers: { Accept: "application/json" } });
 
     if (res.ok) {
-      const json = await res.json() as any;
+      const json = (await res.json()) as { image?: { large?: string } };
       const imageUrl = json.image?.large;
       if (imageUrl) {
         const imgRes = await fetch(imageUrl);
