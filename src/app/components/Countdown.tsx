@@ -95,19 +95,20 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
     { value: seconds, label: 's', name: 'seconds' }
   ];
 
-  // Find the first non-zero unit
-  const firstNonZeroIndex = timeUnits.findIndex(unit => unit.value > 0);
+  // Get all non-zero units
+  const nonZeroUnits = timeUnits.filter(unit => unit.value > 0);
   
-  // Determine which 3 units to show
+  // Determine which units to show
   let unitsToShow;
-  if (firstNonZeroIndex === -1 || total <= 0) {
-    // If countdown is at 0 or expired, show last 3 units (h, m, s)
+  if (nonZeroUnits.length === 0 || total <= 0) {
+    // If countdown is at 0 or expired, show "00h 00m 00s"
     unitsToShow = timeUnits.slice(3, 6);
+  } else if (nonZeroUnits.length >= 3) {
+    // If we have 3 or more non-zero units, take the first 3
+    unitsToShow = nonZeroUnits.slice(0, 3);
   } else {
-    // Show 3 units starting from the first non-zero
-    // But make sure we don't go past the end of the array
-    const startIndex = Math.min(firstNonZeroIndex, 3); // Don't start beyond hours
-    unitsToShow = timeUnits.slice(startIndex, startIndex + 3);
+    // If we have fewer than 3 non-zero units, show all of them
+    unitsToShow = nonZeroUnits;
   }
 
   return (
