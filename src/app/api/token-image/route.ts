@@ -1,5 +1,5 @@
 import { chain, client } from "~/constants";
-import { getContract, readContract } from "thirdweb";
+import { getContract, readContract, NATIVE_TOKEN_ADDRESS } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "~/lib/redis";
@@ -12,7 +12,6 @@ function base64ToArrayBuffer(base64: string): Buffer {
   return Buffer.from(base64, "base64");
 }
 
-const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 function getTokenImageCacheKey(chainName: string, tokenAddress: string): string {
   return `token-image:${chainName.toLowerCase()}:${tokenAddress.toLowerCase()}`;
