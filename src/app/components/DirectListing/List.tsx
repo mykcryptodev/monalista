@@ -26,12 +26,11 @@ export const DirectListingList: FC = () => {
           Create Listing
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-4 p-2 bg-base-300 rounded-lg">
+      <div className="flex overflow-x-auto gap-4 p-2 bg-base-300 rounded-lg">
         {listings.map((listing) => (
-          <DirectListingCard
-            key={listing.id}
-            listing={listing}
-          />
+          <div key={listing.id} className="shrink-0 w-40">
+            <DirectListingCard listing={listing} />
+          </div>
         ))}
       </div>
     </div>
