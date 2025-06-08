@@ -42,8 +42,6 @@ export default function SellPage() {
   const [minBid, setMinBid] = useState("");
   const [buyoutBid, setBuyoutBid] = useState("");
   const [price, setPrice] = useState("");
-  const [reserved, setReserved] = useState(false);
-  const [reservedAddress, setReservedAddress] = useState("");
   const [approved, setApproved] = useState(false);
 
   useEffect(() => {
@@ -216,28 +214,6 @@ export default function SellPage() {
                 </div>
               </>
             )}
-            {saleType === "listing" && (
-              <div className="space-y-1">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-sm"
-                    checked={reserved}
-                    onChange={(e) => setReserved(e.target.checked)}
-                  />
-                  <span className="label-text">Reserve listing</span>
-                </label>
-                {reserved && (
-                  <input
-                    type="text"
-                    value={reservedAddress}
-                    onChange={(e) => setReservedAddress(e.target.value)}
-                    placeholder="Buyer address"
-                    className="input input-bordered input-sm w-full"
-                  />
-                )}
-              </div>
-            )}
           </div>
         </details>
         <div className="flex justify-end pt-2">
@@ -302,8 +278,6 @@ export default function SellPage() {
                           ? (selectedToken.tokenAddress as `0x${string}`)
                           : undefined,
                       endTimestamp: endTime ? new Date(endTime) : undefined,
-                      isReservedListing: reserved,
-                      reservedListingAddress: reservedAddress || undefined,
                     })
                   : createAuction({
                       contract: marketplaceContract,
