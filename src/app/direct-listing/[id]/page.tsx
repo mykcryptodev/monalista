@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getContract } from "thirdweb";
-import { getListing, type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
+import { type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
 import { 
   NFTProvider, 
   NFTMedia, 
@@ -30,10 +30,9 @@ export default function DirectListingPage() {
     const fetchListing = async () => {
       try {
         setLoading(true);
-        const listingData = await getListing({
-          contract: marketplaceContract,
-          listingId: BigInt(listingId),
-        });
+        const res = await fetch(`/api/listings/${listingId}`);
+        if (!res.ok) throw new Error();
+        const listingData: DirectListing = await res.json();
         setListing(listingData);
       } catch (err) {
         setError("Failed to load listing");
@@ -140,6 +139,10 @@ export default function DirectListingPage() {
                     onTransactionConfirmed={() => {
                       toast.dismiss();
                       toast.success("Listing bought!");
+                      fetch("/api/cache/invalidate", {
+                        method: "POST",
+                        body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
+                      });
                     }}
                     onError={(error) => {
                       toast.dismiss();
@@ -162,6 +165,10 @@ export default function DirectListingPage() {
                     onTransactionConfirmed={() => {
                       toast.dismiss();
                       toast.success("Listing cancelled");
+                      fetch("/api/cache/invalidate", {
+                        method: "POST",
+                        body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
+                      });
                     }}
                     onError={(error) => {
                       toast.dismiss();
