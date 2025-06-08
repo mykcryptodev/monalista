@@ -72,8 +72,11 @@ export async function GET(request: NextRequest) {
     if (tokenAddress.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase()) {
       try {
         const meta = await getChainMetadata(chain);
-        const url = meta.icon?.url;
+        let url = meta.icon?.url;
         if (url) {
+          if (url.startsWith("ipfs://")) {
+            url = `https://ipfs.io/ipfs/${url.slice(7)}`;
+          }
           const iconRes = await fetch(url);
           if (iconRes.ok) {
             const buf = await iconRes.arrayBuffer();
