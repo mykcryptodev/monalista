@@ -28,7 +28,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
         onClick={handleCardClick}
       >
         <figure>
-          <NFTMedia />
+          <NFTMedia className="nftmedia-hide-overlay" />
         </figure>
         <div className="card-body p-2 gap-0">
           <h2 className="text-sm font-semibold truncate block w-full">{listing.asset.metadata.name}</h2>

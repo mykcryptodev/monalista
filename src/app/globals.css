@@ -31,3 +31,9 @@ body {
 *::-webkit-scrollbar {
   display: none;
 }
+
+/* Hide pause overlay button from thirdweb's NFTMedia component */
+.nftmedia-hide-overlay button {
+  display: none !important;
+}
+
