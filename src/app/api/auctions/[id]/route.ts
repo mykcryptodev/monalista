@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-import { getAuction, type EnglishAuction } from "thirdweb/extensions/marketplace";
+import {
+  getAuction,
+  type EnglishAuction,
+  getWinningBid,
+} from "thirdweb/extensions/marketplace";
 import { marketplaceContract } from "~/constants";
 import { getCache, setCache } from "~/lib/cache";
 import { serializeBigInts } from "~/lib/serialize";
@@ -19,7 +23,7 @@ export async function GET(
 ) {
   const { id } = await params;
   const key = `auction:${id}`;
-  const cached = await getCache<EnglishAuction>(key);
+  const cached = await getCache<EnglishAuction & { winningBid?: Awaited<ReturnType<typeof getWinningBid>> }>(key);
   if (cached) {
     return NextResponse.json(cached);
   }
@@ -27,7 +31,13 @@ export async function GET(
     contract: marketplaceContract,
     auctionId: BigInt(id),
   });
-  const data = serializeBigInts(auction);
+
+  const winningBid = await getWinningBid({
+    contract: marketplaceContract,
+    auctionId: BigInt(id),
+  });
+
+  const data = serializeBigInts({ ...auction, winningBid });
   const status = auction.status as ListingStatus;
   if (status === "COMPLETED" || status === "CANCELLED" || status === "EXPIRED") {
     await setCache(key, data);
