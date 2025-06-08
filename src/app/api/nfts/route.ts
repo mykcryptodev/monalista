@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
         }
       } catch (e) {
         // Not JSON, log raw text
+        console.error("Zapper API error:", errorText);
       }
       
       return NextResponse.json({ 
