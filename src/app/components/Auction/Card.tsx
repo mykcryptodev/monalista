@@ -2,6 +2,7 @@ import { type FC } from "react";
 import { getContract } from "thirdweb";
 import { buyoutAuction, type EnglishAuction } from "thirdweb/extensions/marketplace";
 import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount } from "thirdweb/react";
+import Countdown from "../Countdown";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
 
@@ -31,7 +32,7 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
         <figure>
           <NFTMedia />
         </figure>
-        <div className="card-body p-2 gap-0">
+        <div className="card-body p-2 gap-1">
           <h2 className="text-sm font-semibold truncate block w-full">
             {auction.asset.metadata.name}
           </h2>
@@ -39,6 +40,7 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
             {auction.minimumBidCurrencyValue.displayValue}{" "}
             {auction.minimumBidCurrencyValue.symbol}
           </p>
+          <Countdown endTimeInSeconds={auction.endTimeInSeconds} />
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton

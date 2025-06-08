@@ -16,6 +16,7 @@ import {
 import { chain, client, marketplaceContract } from "~/constants";
 import Link from "next/link";
 import { Account } from "~/app/components/Account";
+import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 
 export default function DirectListingPage() {
@@ -114,6 +115,10 @@ export default function DirectListingPage() {
                 <div className="flex justify-between">
                   <span className="font-semibold">Quantity:</span>
                   <span>{listing.quantity.toString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Ends in:</span>
+                  <Countdown endTimeInSeconds={listing.endTimeInSeconds} />
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Seller:</span>
