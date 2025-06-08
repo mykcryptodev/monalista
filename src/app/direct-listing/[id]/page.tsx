@@ -87,6 +87,7 @@ export default function DirectListingPage() {
     checkBalance();
   }, [account, listing]);
 
+  useEffect(() => {
     const fetchNftInfo = async () => {
       if (!listing) return;
       try {
@@ -270,6 +271,8 @@ export default function DirectListingPage() {
           </div>
         </NFTProvider>
 
+        <CollectionAbout address={listing.asset.tokenAddress} />
+
         {/* Buy Modal */}
         {showBuyModal && (
           <dialog className="modal modal-open">
@@ -363,8 +366,6 @@ export default function DirectListingPage() {
             </div>
           </div>
         )}
-        </NFTProvider>
-        <CollectionAbout address={listing.asset.tokenAddress} />
       </div>
     </main>
   );
