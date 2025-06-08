@@ -146,7 +146,10 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
               </div>
             </li>
           ))}
-          {filtered.length === 0 && (
+          {loading && (
+            <li className="p-2 text-xs">Loading...</li>
+          )}
+          {filtered.length === 0 && !loading && (
             <li className="p-2 text-xs">No NFTs found</li>
           )}
           <li
