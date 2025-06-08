@@ -27,14 +27,28 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
     };
   }, [end]);
 
-  const [time, setTime] = useState<TimeLeft>(calculate());
+  const [total, setTotal] = useState(0);
+  const [days, setDays] = useState(0);
+  const [hours, setHours] = useState(0);
+  const [minutes, setMinutes] = useState(0);
+  const [seconds, setSeconds] = useState(0);
 
-  useEffect(() => {
-    const id = setInterval(() => setTime(calculate()), 1000);
-    return () => clearInterval(id);
+  const update = useCallback(() => {
+    const t = calculate();
+    setTotal(t.total);
+    setDays(t.days);
+    setHours(t.hours);
+    setMinutes(t.minutes);
+    setSeconds(t.seconds);
   }, [calculate]);
 
-  if (time.total <= 0) {
+  useEffect(() => {
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [update]);
+
+  if (total <= 0) {
     return <span className="text-error text-xs">Expired</span>;
   }
 
@@ -42,40 +56,40 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
 
   return (
     <span className="countdown font-mono text-xs">
-      {time.days > 0 ? (
+      {days > 0 ? (
         <>
           <span
-            style={{ "--value": time.days } as React.CSSProperties}
+            style={{ "--value": days } as React.CSSProperties}
             aria-live="polite"
-            aria-label={`${time.days} days`}
+            aria-label={`${days} days`}
           >
-            {pad(time.days)}
+            {pad(days)}
           </span>
-          d 
+          d
         </>
       ) : null}
       <span
-        style={{ "--value": time.hours } as React.CSSProperties}
+        style={{ "--value": hours } as React.CSSProperties}
         aria-live="polite"
-        aria-label={`${time.hours} hours`}
+        aria-label={`${hours} hours`}
       >
-        {pad(time.hours)}
+        {pad(hours)}
       </span>
       h&nbsp;
       <span
-        style={{ "--value": time.minutes } as React.CSSProperties}
+        style={{ "--value": minutes } as React.CSSProperties}
         aria-live="polite"
-        aria-label={`${time.minutes} minutes`}
+        aria-label={`${minutes} minutes`}
       >
-        {pad(time.minutes)}
+        {pad(minutes)}
       </span>
       m&nbsp;
       <span
-        style={{ "--value": time.seconds } as React.CSSProperties}
+        style={{ "--value": seconds } as React.CSSProperties}
         aria-live="polite"
-        aria-label={`${time.seconds} seconds`}
+        aria-label={`${seconds} seconds`}
       >
-        {pad(time.seconds)}
+        {pad(seconds)}
       </span>
       s
     </span>
