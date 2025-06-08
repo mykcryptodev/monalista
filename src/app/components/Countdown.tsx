@@ -42,7 +42,7 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
 
   return (
     <span className="countdown font-mono text-xs">
-      {time.days > 0 && (
+      {time.days > 0 ? (
         <>
           <span
             style={{ "--value": time.days } as React.CSSProperties}
@@ -51,9 +51,9 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
           >
             {pad(time.days)}
           </span>
-          d&nbsp;
+          d 
         </>
-      )}
+      ) : null}
       <span
         style={{ "--value": time.hours } as React.CSSProperties}
         aria-live="polite"
