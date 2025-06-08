@@ -141,7 +141,7 @@ export default function CreateListingPage() {
                   body: JSON.stringify({ keys: ["listings"] }),
                 });
               }}
-              onError={(err) => {
+              onError={(err: Error) => {
                 toast.dismiss();
                 toast.error(err.message);
               }}

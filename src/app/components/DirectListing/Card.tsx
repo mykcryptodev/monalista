@@ -1,9 +1,10 @@
 import { type FC } from "react";
 import { getContract } from "thirdweb";
 import { buyFromListing, type DirectListing } from "thirdweb/extensions/marketplace";
-import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount } from "thirdweb/react";
+import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
+import TokenIconFallback from "../TokenIconFallback";
 import { Account } from "~/app/components/Account";
 
 type Props = {
@@ -40,7 +41,21 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
         </figure>
         <div className="card-body p-2 gap-0">
           <h2 className="text-sm font-semibold truncate block w-full">{listing.asset.metadata.name}</h2>
-          <p className="text-xs w-full truncate">{listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}</p>
+          <p className="text-xs w-full truncate flex items-center gap-1">
+            <TokenProvider
+              address={listing.currencyContractAddress as `0x${string}`}
+              client={client}
+              chain={chain}
+            >
+              <TokenIcon
+                className="w-4 h-4"
+                iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${listing.currencyContractAddress}`}
+                loadingComponent={<TokenIconFallback />}
+                fallbackComponent={<TokenIconFallback />}
+              />
+            </TokenProvider>
+            {listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}
+          </p>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton
