@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getContract } from "thirdweb";
 import {
   type EnglishAuction,
@@ -9,6 +9,7 @@ import {
   bidInAuction,
   cancelAuction,
   getWinningBid,
+  isNewWinningBid,
 } from "thirdweb/extensions/marketplace";
 import { allowance, approve } from "thirdweb/extensions/erc20";
 import { NATIVE_TOKEN_ADDRESS } from "thirdweb";
@@ -29,7 +30,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
-import { toUnits } from "thirdweb/utils";
+import { toTokens, toUnits } from "thirdweb/utils";
 
 export default function AuctionPage() {
   const params = useParams();
@@ -42,8 +43,28 @@ export default function AuctionPage() {
   const [hasAllowance, setHasAllowance] = useState(false);
   const [bidModalOpen, setBidModalOpen] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
+  const [isNewWinner, setIsNewWinner] = useState(true);
   const isNativeToken = (address: string) =>
     address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
+
+  const decimals =
+    auction?.minimumBidCurrencyValue.decimals !== undefined
+      ? auction.minimumBidCurrencyValue.decimals
+      : 18;
+
+  const minNextBidWei = useMemo(() => {
+    if (!auction) return 0n;
+    const baseBid = auction.winningBid
+      ? BigInt(auction.winningBid.bidAmountWei)
+      : BigInt(auction.minimumBidAmount);
+    const buffer = BigInt(auction.bidBufferBps ?? 0);
+    return baseBid + (baseBid * buffer) / 10000n;
+  }, [auction]);
+
+  const minBidDisplay = useMemo(
+    () => toTokens(minNextBidWei, decimals),
+    [minNextBidWei, decimals],
+  );
 
   useEffect(() => {
     const checkAllowance = async () => {
@@ -63,10 +84,7 @@ export default function AuctionPage() {
           owner: account.address,
           spender: marketplaceContract.address,
         });
-        const amountWei = toUnits(
-          bidAmount || auction.minimumBidCurrencyValue.displayValue,
-          auction.minimumBidCurrencyValue.decimals ?? 18,
-        );
+        const amountWei = toUnits(bidAmount || minBidDisplay, decimals);
         setHasAllowance(value >= amountWei);
       } catch (err) {
         console.error(err);
@@ -74,13 +92,34 @@ export default function AuctionPage() {
       }
     };
     checkAllowance();
-  }, [account, auction, bidAmount]);
+  }, [account, auction, bidAmount, minBidDisplay]);
 
   useEffect(() => {
     if (auction) {
-      setBidAmount(auction.minimumBidCurrencyValue.displayValue);
+      setBidAmount(minBidDisplay);
     }
-  }, [auction]);
+  }, [auction, minBidDisplay]);
+
+  useEffect(() => {
+    const validateBid = async () => {
+      if (!auction || !bidAmount) {
+        setIsNewWinner(false);
+        return;
+      }
+      try {
+        const valid = await isNewWinningBid({
+          contract: marketplaceContract,
+          auctionId: BigInt(auction.id),
+          bidAmount: toUnits(bidAmount, decimals),
+        });
+        setIsNewWinner(valid);
+      } catch (err) {
+        console.error(err);
+        setIsNewWinner(false);
+      }
+    };
+    validateBid();
+  }, [bidAmount, auction, decimals]);
 
   useEffect(() => {
     const fetchAuction = async () => {
@@ -136,11 +175,9 @@ export default function AuctionPage() {
     address: auction.asset.tokenAddress as `0x${string}`,
   });
 
-  const minBidDisplay = auction.minimumBidCurrencyValue.displayValue;
-  const decimals = auction.minimumBidCurrencyValue.decimals ?? 18;
-  const minBidNumeric = parseFloat(minBidDisplay);
-  const bidNumeric = parseFloat(bidAmount);
-  const isBidValid = bidAmount !== "" && !isNaN(bidNumeric) && bidNumeric >= minBidNumeric;
+  const bidAmountWei = toUnits(bidAmount || "0", decimals);
+  const isBidValid =
+    bidAmount !== "" && bidAmountWei >= minNextBidWei && isNewWinner;
 
   return (
     <main className="bg-base-400 h-screen w-screen">
