@@ -71,7 +71,7 @@ export function BottomNav() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="btm-nav fixed bottom-0 inset-x-0 w-full">
+    <nav className="btm-nav fixed bottom-0 inset-x-0 w-full flex justify-around">
       <Link href="/" className={isActive("/") ? "active" : ""}>
         <ShoppingBagIcon />
         <span className="btm-nav-label">Shop</span>

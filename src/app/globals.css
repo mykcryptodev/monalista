@@ -1,7 +1,5 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: black --default, black --prefersdark;
-}
+@import "daisyui";
 
 @font-face {
   font-family: 'Segment';
