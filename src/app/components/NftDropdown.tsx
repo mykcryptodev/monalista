@@ -22,15 +22,33 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
   const [manual, setManual] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
   const [manualId, setManualId] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     if (!account) return;
-    fetch(`/api/nfts?address=${account.address}`)
-      .then((res) => res.json())
-      .then((data) => setNfts(data))
-      .catch(console.error);
+    setNfts([]);
+    setPage(1);
+    setHasMore(true);
   }, [account]);
+
+  useEffect(() => {
+    if (!account || !hasMore) return;
+    setLoading(true);
+    fetch(`/api/nfts?address=${account.address}&page=${page}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setNfts((prev) => [...prev, ...data.nfts]);
+        if (!data.hasMore) {
+          setHasMore(false);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [account, page, hasMore]);
 
   useEffect(() => {
     if (!open && !manual) return;
@@ -66,9 +84,24 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
 
   const handleManualSelect = () => {
     if (manualAddress && manualId) {
-      onSelect({ id: manualId, tokenAddress: manualAddress, metadata: {} });
-      setQuery("");
+      const nft = {
+        id: manualId,
+        tokenAddress: manualAddress,
+        metadata: {},
+      } as OwnedNFT;
+      onSelect(nft);
+      setQuery(`${manualAddress} - ${manualId}`);
+      setNfts((prev) => [nft, ...prev]);
+      setOpen(false);
       setManual(false);
+    }
+  };
+
+  const handleScroll = () => {
+    const list = listRef.current;
+    if (!list || loading || !hasMore) return;
+    if (list.scrollTop + list.clientHeight >= list.scrollHeight - 5) {
+      setPage((p) => p + 1);
     }
   };
 
@@ -86,7 +119,11 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
         }}
       />
       {open && !manual && (
-        <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto overflow-x-hidden rounded-box bg-base-200 shadow">
+        <ul
+          ref={listRef}
+          onScroll={handleScroll}
+          className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto overflow-x-hidden rounded-box bg-base-200 shadow"
+        >
           {filtered.map((nft) => (
             <li
               key={`${nft.tokenAddress}-${nft.id}`}
