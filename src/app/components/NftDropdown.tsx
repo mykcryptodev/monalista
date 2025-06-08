@@ -19,6 +19,9 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
   const [nfts, setNfts] = useState<OwnedNFT[]>([]);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [manual, setManual] = useState(false);
+  const [manualAddress, setManualAddress] = useState("");
+  const [manualId, setManualId] = useState("");
 
   useEffect(() => {
     if (!account) return;
@@ -42,6 +45,15 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
     onSelect(nft);
     setQuery(nft.metadata.name ? nft.metadata.name : nft.id);
     setOpen(false);
+    setManual(false);
+  };
+
+  const handleManualSelect = () => {
+    if (manualAddress && manualId) {
+      onSelect({ id: manualId, tokenAddress: manualAddress, metadata: {} });
+      setQuery("");
+      setManual(false);
+    }
   };
 
   return (
@@ -57,12 +69,12 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
           setOpen(true);
         }}
       />
-      {open && (
-        <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-box bg-base-200 shadow">
+      {open && !manual && (
+        <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto overflow-x-hidden rounded-box bg-base-200 shadow">
           {filtered.map((nft) => (
             <li
               key={`${nft.tokenAddress}-${nft.id}`}
-              className="flex items-center gap-2 p-2 hover:bg-base-300 cursor-pointer"
+              className="flex items-center gap-2 p-2 hover:bg-base-300 cursor-pointer overflow-hidden"
               onMouseDown={() => handleSelect(nft)}
             >
               {nft.metadata.image && (
@@ -73,18 +85,61 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
                   className="w-8 h-8 object-cover"
                 />
               )}
-              <div className="text-xs leading-tight">
+              <div className="text-xs leading-tight overflow-hidden">
                 <div className="font-semibold truncate">
                   {nft.metadata.name || "Unnamed"}
                 </div>
-                <div className="opacity-70">ID: {nft.id}</div>
+                <div className="opacity-70 truncate">ID: {nft.id}</div>
               </div>
             </li>
           ))}
           {filtered.length === 0 && (
             <li className="p-2 text-xs">No NFTs found</li>
           )}
+          <li
+            className="p-2 text-xs cursor-pointer hover:bg-base-300"
+            onMouseDown={() => {
+              setManual(true);
+              setOpen(false);
+            }}
+          >
+            Import manually
+          </li>
         </ul>
+      )}
+      {manual && (
+        <div className="absolute z-10 mt-1 w-full space-y-2 rounded-box bg-base-200 p-2 shadow">
+          <input
+            type="text"
+            placeholder="NFT Address"
+            value={manualAddress}
+            onChange={(e) => setManualAddress(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+          <input
+            type="text"
+            placeholder="Token ID"
+            value={manualId}
+            onChange={(e) => setManualId(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="btn btn-sm btn-ghost flex-1"
+              onMouseDown={() => setManual(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary flex-1"
+              onMouseDown={handleManualSelect}
+            >
+              Select
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
