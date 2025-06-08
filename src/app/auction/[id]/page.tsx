@@ -445,6 +445,16 @@ export default function AuctionPage() {
                         method: "POST",
                         body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
                       });
+                      if (auction.winningBid?.bidderAddress) {
+                        fetch("/api/notifications/outbid", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            previousBidder: auction.winningBid.bidderAddress,
+                            auctionId: auction.id,
+                            nftName: auction.asset.name,
+                          }),
+                        });
+                      }
                     }}
                     onError={(error) => {
                       toast.dismiss();
