@@ -1,14 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 import { getListing, type DirectListing } from "thirdweb/extensions/marketplace";
 import { marketplaceContract } from "~/constants";
 import { getCache, setCache } from "~/lib/cache";
-import { ListingStatus } from "thirdweb/extensions/marketplace/types";
+type ListingStatus =
+  | "UNSET"
+  | "CREATED"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "ACTIVE"
+  | "EXPIRED";
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  const { id } = await params;
   const key = `listing:${id}`;
   const cached = await getCache<DirectListing>(key);
   if (cached) {

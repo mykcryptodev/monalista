@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
 import { getAllValidAuctions, type EnglishAuction } from "thirdweb/extensions/marketplace";
 import { marketplaceContract } from "~/constants";
 import { getCache, setCache } from "~/lib/cache";
