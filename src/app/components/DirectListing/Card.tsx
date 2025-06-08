@@ -1,5 +1,5 @@
 import { type FC, useState, useEffect } from "react";
-import { getContract, NATIVE_TOKEN_ADDRESS } from "thirdweb";
+import { getContract, NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS } from "thirdweb";
 import { buyFromListing, type DirectListing } from "thirdweb/extensions/marketplace";
 import Countdown from "../Countdown";
 import { NFTProvider, NFTMedia, PayEmbed, TransactionButton, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
@@ -60,7 +60,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
     contract: marketplaceContract,
     listingId: listing.id,
     quantity: BigInt(1),
-    recipient: account?.address!,
+    recipient: account?.address || ZERO_ADDRESS,
   });
 
   const hasSufficientBalance = userBalance >= BigInt(listing?.currencyValuePerToken?.value || 0);
@@ -105,6 +105,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
                 <TransactionButton
                   transaction={getBuyTransaction}
                   className="!btn !btn-primary !btn-xs !text-xs !min-w-fit"
+                  disabled={!account?.address}
                 >
                   Buy
                 </TransactionButton>
