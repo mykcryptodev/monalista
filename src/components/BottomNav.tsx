@@ -71,16 +71,16 @@ export function BottomNav() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="btm-nav">
+    <nav className="btm-nav fixed bottom-0 inset-x-0 w-full">
       <Link href="/" className={isActive("/") ? "active" : ""}>
         <ShoppingBagIcon />
         <span className="btm-nav-label">Shop</span>
       </Link>
-      <Link href="/" className={isActive("/nfts") ? "active" : ""}>
+      <Link href="/nfts" className={isActive("/nfts") ? "active" : ""}>
         <SquaresIcon />
         <span className="btm-nav-label">My NFTs</span>
       </Link>
-      <Link href="/" className={isActive("/notifications") ? "active" : ""}>
+      <Link href="/notifications" className={isActive("/notifications") ? "active" : ""}>
         <BellIcon />
         <span className="btm-nav-label">Notifications</span>
       </Link>
