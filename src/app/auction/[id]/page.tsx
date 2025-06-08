@@ -8,6 +8,7 @@ import {
   buyoutAuction,
   bidInAuction,
   cancelAuction,
+  getWinningBid,
 } from "thirdweb/extensions/marketplace";
 import { allowance, approve } from "thirdweb/extensions/erc20";
 import { NATIVE_TOKEN_ADDRESS } from "thirdweb";
@@ -32,7 +33,8 @@ import TokenIconFallback from "~/app/components/TokenIconFallback";
 export default function AuctionPage() {
   const params = useParams();
   const auctionId = params.id as string;
-  const [auction, setAuction] = useState<EnglishAuction | null>(null);
+  type WinningBid = Awaited<ReturnType<typeof getWinningBid>>;
+  const [auction, setAuction] = useState<(EnglishAuction & { winningBid?: WinningBid }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const account = useActiveAccount();
@@ -73,7 +75,7 @@ export default function AuctionPage() {
         setLoading(true);
         const res = await fetch(`/api/auctions/${auctionId}`);
         if (!res.ok) throw new Error();
-        const auctionData: EnglishAuction = await res.json();
+        const auctionData: EnglishAuction & { winningBid?: WinningBid } = await res.json();
         setAuction(auctionData);
       } catch (err) {
         setError("Failed to load auction");
@@ -196,6 +198,34 @@ export default function AuctionPage() {
                   <span className="font-semibold">Seller:</span>
                   <Account address={auction.creatorAddress} />
                 </div>
+                {auction.winningBid && (
+                  <div className="flex justify-between items-start">
+                    <span className="font-semibold">Winning Bid:</span>
+                    <div className="flex flex-col items-end gap-1">
+                      <Account
+                        address={auction.winningBid.bidderAddress}
+                        avatarClassName="w-4 h-4"
+                        className="max-w-[100px]"
+                      />
+                      <span className="flex items-center gap-1">
+                        <TokenProvider
+                          address={auction.currencyContractAddress as `0x${string}`}
+                          client={client}
+                          chain={chain}
+                        >
+                          <TokenIcon
+                            className="w-4 h-4"
+                            iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`}
+                            loadingComponent={<TokenIconFallback />}
+                            fallbackComponent={<TokenIconFallback />}
+                          />
+                        </TokenProvider>
+                        {auction.winningBid.currencyValue.displayValue}{" "}
+                        {auction.winningBid.currencyValue.symbol}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="card-actions justify-end mt-4">
