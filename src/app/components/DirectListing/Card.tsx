@@ -43,7 +43,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
         </figure>
         <div className="card-body p-2 gap-1">
           <h2 className="text-sm font-semibold truncate block w-full">{listing.asset.metadata.name}</h2>
-          <p className="text-xs w-full truncate flex items-center gap-1">
+          <div className="text-xs w-full truncate flex items-center gap-1">
             <TokenProvider
               address={listing.currencyContractAddress as `0x${string}`}
               client={client}
@@ -57,7 +57,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
               />
             </TokenProvider>
             {listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}
-          </p>
+          </div>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton

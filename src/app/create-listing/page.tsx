@@ -20,11 +20,13 @@ import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
 import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
+import { TokenDropdown, type OwnedToken } from "~/app/components/TokenDropdown";
 
 export default function CreateListingPage() {
   const account = useActiveAccount();
   const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
   const [price, setPrice] = useState("");
+  const [selectedToken, setSelectedToken] = useState<OwnedToken | null>(null);
   const [approved, setApproved] = useState(false);
 
   useEffect(() => {
@@ -65,9 +67,10 @@ export default function CreateListingPage() {
           </Link>
         </div>
         <NftDropdown onSelect={setSelectedNft} />
+        <TokenDropdown onSelect={setSelectedToken} />
         <input
           type="text"
-          placeholder="Price (ETH)"
+          placeholder="Price"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
           className="input input-bordered input-sm w-full"
@@ -128,9 +131,13 @@ export default function CreateListingPage() {
                   tokenId: BigInt(selectedNft!.id),
                   quantity: 1n,
                   pricePerToken: price,
+                  currencyContractAddress:
+                    selectedToken && selectedToken.tokenAddress !== "native"
+                      ? (selectedToken.tokenAddress as `0x${string}`)
+                      : undefined,
                 })
               }
-              disabled={!selectedNft}
+              disabled={!selectedNft || !selectedToken}
               className="!btn !btn-primary !btn-sm"
               onTransactionSent={() => toast.loading("Creating listing...")}
               onTransactionConfirmed={() => {
