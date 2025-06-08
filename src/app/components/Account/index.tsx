@@ -10,16 +10,16 @@ type Props = {
    * Optional class applied to the avatar component. Defaults to `w-6 h-6`.
    */
   avatarClassName?: string;
-}
+};
 
-export const Account: FC<Props> = ({ address, avatarClassName }) => {
+export const Account: FC<Props> = ({ address, avatarClassName = "w-6 h-6" }) => {
   return (
     <AccountProvider address={address} client={client}>
       <div className="flex items-center gap-2">
         <AccountAvatar
           fallbackComponent={<AccountAvatarFallback className={avatarClassName} />}
           loadingComponent={<AccountAvatarFallback className={avatarClassName} />}
-          className={`w-6 h-6 rounded-lg ${avatarClassName ?? ""}`}
+          className={`${avatarClassName} rounded-lg`}
         />
         <AccountName
           className="text-xs truncate"

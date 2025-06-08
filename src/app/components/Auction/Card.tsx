@@ -38,7 +38,6 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
         onClick={handleCardClick}
       >
         <div className="p-2 flex items-center gap-1 justify-start text-xs">
-          <span className="font-semibold">Seller:</span>
           <Account address={auction.creatorAddress} avatarClassName="w-4 h-4" />
         </div>
         <figure>

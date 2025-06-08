@@ -29,7 +29,6 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
         onClick={handleCardClick}
       >
         <div className="p-2 flex items-center gap-1 justify-start text-xs">
-          <span className="font-semibold">Seller:</span>
           <Account address={listing.creatorAddress} avatarClassName="w-4 h-4" />
         </div>
         <figure>
