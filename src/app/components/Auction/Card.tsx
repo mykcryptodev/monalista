@@ -23,7 +23,7 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
   };
 
   return (
-    <NFTProvider contract={contract} tokenId={auction.asset.id}>
+    <NFTProvider contract={contract} tokenId={BigInt(auction.asset.id)}>
       <div
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
