@@ -23,7 +23,7 @@ export const AuctionList: FC = () => {
           Create Auction
         </Link>
       </div>
-      <div className="flex overflow-x-auto gap-4 p-2 bg-base-300 rounded-lg">
+        <div className="flex items-end overflow-x-auto gap-4 p-2 bg-base-300 rounded-lg">
         {auctions.map((auction) => (
           <div key={auction.id} className="shrink-0 w-40">
             <AuctionCard auction={auction} />
