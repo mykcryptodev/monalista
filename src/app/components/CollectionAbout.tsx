@@ -8,8 +8,14 @@ type Props = {
 type CollectionData = {
   name?: string;
   description?: string;
-  cardImageUrl?: string;
-  stats?: { floorPriceEth?: number };
+  medias?: {
+    card?: { large?: string | null } | null;
+    logo?: { thumbnail?: string | null } | null;
+  } | null;
+  floorPrice?: {
+    valueWithDenomination?: number;
+    denomination?: { symbol?: string };
+  } | null;
 };
 
 export const CollectionAbout = ({ address }: Props) => {
@@ -35,9 +41,21 @@ export const CollectionAbout = ({ address }: Props) => {
   return (
     <section className="mt-4 text-sm">
       <h3 className="font-bold text-lg mb-2">About {data.name}</h3>
+      {data.medias?.logo?.thumbnail && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={data.medias.logo.thumbnail}
+          alt="collection logo"
+          className="mb-2 w-16 h-16 rounded"
+        />
+      )}
       {data.description && <p className="mb-2">{data.description}</p>}
-      {data.stats?.floorPriceEth !== undefined && (
-        <p className="opacity-70">Floor Price: {data.stats.floorPriceEth}</p>
+      {data.floorPrice?.valueWithDenomination !== undefined && (
+        <p className="opacity-70">
+          Floor Price: {data.floorPrice.valueWithDenomination}
+          {" "}
+          {data.floorPrice.denomination?.symbol}
+        </p>
       )}
     </section>
   );
