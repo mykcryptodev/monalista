@@ -29,10 +29,10 @@ export default function CreateListingPage() {
 
   useEffect(() => {
     const checkApproval = async () => {
-      if (!account || !tokenAddress) return;
+      if (!account || !selectedNft?.tokenAddress) return;
       try {
         const contract = getContract({
-          address: tokenAddress as `0x${string}`,
+          address: selectedNft.tokenAddress as `0x${string}`,
           chain,
           client,
         });
@@ -54,7 +54,7 @@ export default function CreateListingPage() {
       }
     };
     checkApproval();
-  }, [account, tokenAddress]);
+  }, [account, selectedNft?.tokenAddress]);
 
   return (
     <main className="bg-base-400 h-screen w-screen">
@@ -79,7 +79,7 @@ export default function CreateListingPage() {
             <TransactionButton
               transaction={() => {
                 const contract = getContract({
-                  address: tokenAddress as `0x${string}`,
+                  address: selectedNft?.tokenAddress as `0x${string}`,
                   chain,
                   client,
                 });
@@ -99,7 +99,7 @@ export default function CreateListingPage() {
               onError={async () => {
                 try {
                   const contract = getContract({
-                    address: tokenAddress as `0x${string}`,
+                    address: selectedNft?.tokenAddress as `0x${string}`,
                     chain,
                     client,
                   });
