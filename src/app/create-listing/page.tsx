@@ -85,20 +85,6 @@ export default function CreateListingPage() {
           onChange={(e) => setPrice(e.target.value)}
           className="input input-bordered input-sm w-full"
         />
-        <ul className="steps w-full mb-2">
-          <li
-            className={`step ${approved ? "step-primary" : ""}`}
-            data-content={approved ? "✓" : "1"}
-          >
-            Approve
-          </li>
-          <li
-            className={`step ${approved ? "step-primary" : ""}`}
-            data-content="2"
-          >
-            Create
-          </li>
-        </ul>
         <div className="flex justify-end pt-2">
           {!account ? (
             <ConnectButton client={client} />
