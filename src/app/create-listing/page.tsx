@@ -59,8 +59,8 @@ export default function CreateListingPage() {
   }, [account, selectedNft?.tokenAddress]);
 
   return (
-    <main className="bg-base-400 h-screen w-screen">
-      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full overflow-y-auto space-y-4">
+    <main className="bg-base-400 min-h-screen w-screen pb-20">
+      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full overflow-y-auto space-y-4">
         <div className="mb-2">
           <Link href="/" className="btn btn-sm btn-ghost">
             ← Back

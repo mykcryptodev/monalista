@@ -30,6 +30,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
+import { CollectionAbout } from "~/app/components/CollectionAbout";
 import { toTokens, toUnits } from "thirdweb/utils";
 import { getWalletBalance } from "thirdweb/wallets";
 
@@ -40,6 +41,13 @@ export default function AuctionPage() {
   const [auction, setAuction] = useState<(EnglishAuction & { winningBid?: WinningBid }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nftInfo, setNftInfo] = useState<
+    | {
+        rarityRank?: number | null;
+        traits: { attributeName: string; attributeValue: string }[];
+      }
+    | null
+  >(null);
   const account = useActiveAccount();
   const [hasAllowance, setHasAllowance] = useState(false);
   const [bidModalOpen, setBidModalOpen] = useState(false);
@@ -102,7 +110,7 @@ export default function AuctionPage() {
       }
     };
     checkAllowance();
-  }, [account, auction, minNextBidWei, bidAmount, minBidDisplay, decimals]);
+  }, [account, auction, bidAmount, minBidDisplay, decimals]);
 
   useEffect(() => {
     const checkBalance = async () => {
@@ -178,11 +186,28 @@ export default function AuctionPage() {
     contract: marketplaceContract,
     auctionId: BigInt(auction!.id),
   });
+  
+  useEffect(() => {
+    const fetchNftInfo = async () => {
+      if (!auction) return;
+      try {
+        const res = await fetch(
+          `/api/nft?collectionAddress=${auction.asset.tokenAddress}&tokenId=${auction.asset.id}&chainId=${chain.id}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setNftInfo(data);
+      } catch (err) {
+        console.error('Failed to fetch NFT info', err);
+      }
+    };
+    fetchNftInfo();
+  }, [auction]);
 
   if (loading) {
     return (
-      <main className="bg-base-400 h-screen w-screen">
-        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full">
+      <main className="bg-base-400 min-h-screen w-screen pb-20">
+        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full">
           <div className="flex justify-center items-center h-full">
             <span className="loading loading-spinner loading-lg"></span>
           </div>
@@ -193,8 +218,8 @@ export default function AuctionPage() {
 
   if (error || !auction) {
     return (
-      <main className="bg-base-400 h-screen w-screen">
-        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full">
+      <main className="bg-base-400 min-h-screen w-screen pb-20">
+        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full">
           <div className="flex flex-col justify-center items-center h-full gap-4">
             <p className="text-error">{error || "Auction not found"}</p>
             <Link href="/" className="btn btn-sm">
@@ -218,8 +243,8 @@ export default function AuctionPage() {
   const hasSufficientBalanceForBuyout = userBalance >= BigInt(auction?.buyoutCurrencyValue?.value || 0);
 
   return (
-    <main className="bg-base-400 h-screen w-screen">
-      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full overflow-y-auto">
+    <main className="bg-base-400 min-h-screen w-screen pb-20">
+      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full overflow-y-auto">
         <div className="mb-4">
           <Link href="/" className="btn btn-sm btn-ghost">
             ← Back
@@ -236,6 +261,19 @@ export default function AuctionPage() {
               <div className="text-sm opacity-70">
                 <NFTDescription />
               </div>
+              {nftInfo?.rarityRank && (
+                <p className="text-xs mt-2">Rarity Rank: {nftInfo.rarityRank}</p>
+              )}
+              {nftInfo?.traits?.length ? (
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                  {nftInfo.traits.map((t, i) => (
+                    <div key={i} className="border rounded p-2">
+                      <div className="font-semibold">{t.attributeName}</div>
+                      <div>{t.attributeValue}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
 
               <div className="divider"></div>
 
@@ -373,8 +411,7 @@ export default function AuctionPage() {
             </div>
           </div>
         </NFTProvider>
-        
-        {/* Bid Modal */}
+        <CollectionAbout address={auction.asset.tokenAddress} />
         {bidModalOpen && (
           <dialog className="modal modal-open">
             <div className="modal-box">

@@ -23,6 +23,7 @@ import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
 import { getWalletBalance } from "thirdweb/wallets";
+import { CollectionAbout } from "~/app/components/CollectionAbout";
 
 export default function DirectListingPage() {
   const params = useParams();
@@ -30,6 +31,13 @@ export default function DirectListingPage() {
   const [listing, setListing] = useState<DirectListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nftInfo, setNftInfo] = useState<
+    | {
+        rarityRank?: number | null;
+        traits: { attributeName: string; attributeValue: string }[];
+      }
+    | null
+  >(null);
   const account = useActiveAccount();
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showPay, setShowPay] = useState(false);
@@ -79,10 +87,26 @@ export default function DirectListingPage() {
     checkBalance();
   }, [account, listing]);
 
+    const fetchNftInfo = async () => {
+      if (!listing) return;
+      try {
+        const res = await fetch(
+          `/api/nft?collectionAddress=${listing.asset.tokenAddress}&tokenId=${listing.asset.id}&chainId=${chain.id}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setNftInfo(data);
+      } catch (err) {
+        console.error('Failed to fetch NFT info', err);
+      }
+    };
+    fetchNftInfo();
+  }, [listing]);
+
   if (loading) {
     return (
-      <main className="max-w-[300px] mx-auto bg-base-400 h-screen w-screen">
-        <div className="mx-auto p-4 bg-base-300 rounded-lg h-full">
+      <main className="bg-base-400 min-h-screen w-screen pb-20">
+        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full">
           <div className="flex justify-center items-center h-full">
             <span className="loading loading-spinner loading-lg"></span>
           </div>
@@ -93,8 +117,8 @@ export default function DirectListingPage() {
 
   if (error || !listing) {
     return (
-      <main className="max-w-[300px] mx-auto bg-base-400 h-screen w-screen">
-        <div className="mx-auto p-4 bg-base-300 rounded-lg h-full">
+      <main className="bg-base-400 min-h-screen w-screen pb-20">
+        <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full">
           <div className="flex flex-col justify-center items-center h-full gap-4">
             <p className="text-error">{error || "Listing not found"}</p>
             <Link href="/" className="btn btn-sm">
@@ -134,8 +158,8 @@ export default function DirectListingPage() {
   });
 
   return (
-    <main className="max-w-[300px] mx-auto bg-base-400 h-screen w-screen">
-      <div className="mx-auto p-4 bg-base-300 rounded-lg h-full overflow-y-auto">
+    <main className="bg-base-400 min-h-screen w-screen pb-20">
+      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg min-h-full overflow-y-auto">
         <div className="mb-4">
           <Link href="/" className="btn btn-sm btn-ghost">
             ← Back
@@ -152,6 +176,19 @@ export default function DirectListingPage() {
               <div className="text-sm opacity-70">
                 <NFTDescription />
               </div>
+              {nftInfo?.rarityRank && (
+                <p className="text-xs mt-2">Rarity Rank: {nftInfo.rarityRank}</p>
+              )}
+              {nftInfo?.traits?.length ? (
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                  {nftInfo.traits.map((t, i) => (
+                    <div key={i} className="border rounded p-2">
+                      <div className="font-semibold">{t.attributeName}</div>
+                      <div>{t.attributeValue}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               
               <div className="divider"></div>
               
@@ -326,6 +363,8 @@ export default function DirectListingPage() {
             </div>
           </div>
         )}
+        </NFTProvider>
+        <CollectionAbout address={listing.asset.tokenAddress} />
       </div>
     </main>
   );
