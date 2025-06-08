@@ -41,7 +41,9 @@ export default function AuctionPage() {
   const [error, setError] = useState<string | null>(null);
   const account = useActiveAccount();
   const [hasAllowance, setHasAllowance] = useState(false);
-  const [openModal, setOpenModal] = useState<"bid" | "buyout" | null>(null);
+  const [bidModalOpen, setBidModalOpen] = useState(false);
+  const [showPayEmbed, setShowPayEmbed] = useState(false);
+  const [buyoutModalOpen, setBuyoutModalOpen] = useState(false);
   const isNativeToken = (address: string) =>
     address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
 
@@ -255,117 +257,18 @@ export default function AuctionPage() {
                   <ConnectButton client={client} />
                 ) : (
                   <>
-                    {hasAllowance ? (
-                      <>
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => setOpenModal("bid")}
-                        >
-                          Bid
-                        </button>
-                        {openModal === "bid" && (
-                          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
-                            <div className="relative">
-                              <button
-                                className="btn btn-xs btn-circle absolute right-2 top-2"
-                                onClick={() => setOpenModal(null)}
-                              >
-                                ✕
-                              </button>
-                              <PayEmbed
-                                client={client}
-                                payOptions={{
-                                  mode: "transaction",
-                                  transaction: bidInAuction({
-                                    contract: marketplaceContract,
-                                    auctionId: BigInt(auction.id),
-                                    bidAmountWei: minNextBidWei,
-                                  }),
-                                  metadata: auction.asset.metadata,
-                                  onPurchaseSuccess: () => {
-                                    toast.success("Bid placed!");
-                                    fetch("/api/cache/invalidate", {
-                                      method: "POST",
-                                      body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
-                                    });
-                                    setOpenModal(null);
-                                  },
-                                }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <TransactionButton
-                        transaction={() => {
-                          const erc20 = getContract({
-                            address: auction.currencyContractAddress as `0x${string}`,
-                            chain,
-                            client,
-                          });
-                          return approve({
-                            contract: erc20,
-                            spender: marketplaceContract.address,
-                            amountWei: minNextBidWei,
-                          });
-                        }}
-                        className="!btn !btn-primary !btn-sm"
-                        onTransactionSent={() => {
-                          toast.loading("Approving currency...");
-                        }}
-                        onTransactionConfirmed={() => {
-                          toast.dismiss();
-                          toast.success("Currency approved");
-                          setHasAllowance(true);
-                        }}
-                        onError={(error) => {
-                          toast.dismiss();
-                          toast.error(error.message);
-                        }}
-                      >
-                        Approve
-                      </TransactionButton>
-                    )}
-                    <>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => setOpenModal("buyout")}
-                      >
-                        Buyout
-                      </button>
-                      {openModal === "buyout" && (
-                        <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
-                          <div className="relative">
-                            <button
-                              className="btn btn-xs btn-circle absolute right-2 top-2"
-                              onClick={() => setOpenModal(null)}
-                            >
-                              ✕
-                            </button>
-                            <PayEmbed
-                              client={client}
-                              payOptions={{
-                                mode: "transaction",
-                                transaction: buyoutAuction({
-                                  contract: marketplaceContract,
-                                  auctionId: BigInt(auction.id),
-                                }),
-                                metadata: auction.asset.metadata,
-                                onPurchaseSuccess: () => {
-                                  toast.success("Auction bought out!");
-                                  fetch("/api/cache/invalidate", {
-                                    method: "POST",
-                                    body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
-                                  });
-                                  setOpenModal(null);
-                                },
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setBidModalOpen(true)}
+                    >
+                      Bid
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setBuyoutModalOpen(true)}
+                    >
+                      Buyout
+                    </button>
                   </>
                 )}
                 {account?.address?.toLowerCase() === auction.creatorAddress.toLowerCase() && (
@@ -400,6 +303,135 @@ export default function AuctionPage() {
             </div>
           </div>
         </NFTProvider>
+        
+        {/* Bid Modal */}
+        {bidModalOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Place Bid</h3>
+              <p className="py-4">
+                Minimum bid: {minBidDisplay} {auction.minimumBidCurrencyValue.symbol}
+              </p>
+              <div className="modal-action">
+                <button className="btn btn-sm" onClick={() => setBidModalOpen(false)}>
+                  Cancel
+                </button>
+                {hasAllowance ? (
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setShowPayEmbed(true)}
+                  >
+                    Place Bid
+                  </button>
+                ) : (
+                  <TransactionButton
+                    transaction={() => {
+                      const erc20 = getContract({
+                        address: auction.currencyContractAddress as `0x${string}`,
+                        chain,
+                        client,
+                      });
+                      return approve({
+                        contract: erc20,
+                        spender: marketplaceContract.address,
+                        amountWei: minNextBidWei,
+                      });
+                    }}
+                    className="!btn !btn-primary !btn-sm"
+                    onTransactionSent={() => {
+                      toast.loading("Approving currency...");
+                    }}
+                    onTransactionConfirmed={() => {
+                      toast.dismiss();
+                      toast.success("Currency approved");
+                      setHasAllowance(true);
+                    }}
+                    onError={(error) => {
+                      toast.dismiss();
+                      toast.error(error.message);
+                    }}
+                  >
+                    Approve to Bid
+                  </TransactionButton>
+                )}
+              </div>
+            </div>
+            <form method="dialog" className="modal-backdrop">
+              <button onClick={() => setBidModalOpen(false)}>close</button>
+            </form>
+          </dialog>
+        )}
+
+        {/* PayEmbed for Bid */}
+        {showPayEmbed && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
+            <div className="relative">
+              <button
+                className="btn btn-xs btn-circle absolute right-2 top-2"
+                onClick={() => {
+                  setShowPayEmbed(false);
+                  setBidModalOpen(false);
+                }}
+              >
+                ✕
+              </button>
+              <PayEmbed
+                client={client}
+                payOptions={{
+                  mode: "transaction",
+                  transaction: bidInAuction({
+                    contract: marketplaceContract,
+                    auctionId: BigInt(auction.id),
+                    bidAmountWei: minNextBidWei,
+                  }),
+                  metadata: auction.asset.metadata,
+                  onPurchaseSuccess: () => {
+                    toast.success("Bid placed!");
+                    fetch("/api/cache/invalidate", {
+                      method: "POST",
+                      body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
+                    });
+                    setShowPayEmbed(false);
+                    setBidModalOpen(false);
+                  },
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Buyout Modal with PayEmbed */}
+        {buyoutModalOpen && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
+            <div className="relative">
+              <button
+                className="btn btn-xs btn-circle absolute right-2 top-2"
+                onClick={() => setBuyoutModalOpen(false)}
+              >
+                ✕
+              </button>
+              <PayEmbed
+                client={client}
+                payOptions={{
+                  mode: "transaction",
+                  transaction: buyoutAuction({
+                    contract: marketplaceContract,
+                    auctionId: BigInt(auction.id),
+                  }),
+                  metadata: auction.asset.metadata,
+                  onPurchaseSuccess: () => {
+                    toast.success("Auction bought out!");
+                    fetch("/api/cache/invalidate", {
+                      method: "POST",
+                      body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
+                    });
+                    setBuyoutModalOpen(false);
+                  },
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
