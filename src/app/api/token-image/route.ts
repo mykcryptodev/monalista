@@ -1,8 +1,10 @@
 import { chain, client } from "~/constants";
 import { getContract, readContract, NATIVE_TOKEN_ADDRESS } from "thirdweb";
-import { getChainMetadata } from "thirdweb/chains";
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "~/lib/redis";
+
+const NATIVE_TOKEN_ICON_URL =
+  "https://d3r81g40ycuhqg.cloudfront.net/wallet/wais/07/23/0723c996feb7dc2d87bec4191b6af4721acfd4898759a1fa85686ae2d67f8982-ZTZjN2NhNjAtODI2Ni00YmU4LWI4NTgtOWNiZTUyYzQ3MDc4";
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return Buffer.from(buffer).toString("base64");
@@ -70,28 +72,20 @@ export async function GET(request: NextRequest) {
     }
 
     if (tokenAddress.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase()) {
-      try {
-        const meta = await getChainMetadata(chain);
-        let url = meta.icon?.url;
-        if (url) {
-          if (url.startsWith("ipfs://")) {
-            url = `https://ipfs.io/ipfs/${url.slice(7)}`;
-          }
-          const iconRes = await fetch(url);
-          if (iconRes.ok) {
-            const buf = await iconRes.arrayBuffer();
-            const contentType = iconRes.headers.get("content-type") || "image/png";
-            await redis.set(cacheKey, { image: arrayBufferToBase64(buf), contentType });
-            return new NextResponse(buf, {
-              headers: {
-                "Content-Type": contentType,
-                "Cache-Control": "public, max-age=31536000, immutable",
-              },
-            });
-          }
-        }
-      } catch {
-        // ignore and fall through
+      const iconRes = await fetch(NATIVE_TOKEN_ICON_URL);
+      if (iconRes.ok) {
+        const buf = await iconRes.arrayBuffer();
+        const contentType = iconRes.headers.get("content-type") || "image/png";
+        await redis.set(cacheKey, {
+          image: arrayBufferToBase64(buf),
+          contentType,
+        });
+        return new NextResponse(buf, {
+          headers: {
+            "Content-Type": contentType,
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        });
       }
     }
 
