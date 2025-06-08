@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ThirdwebProvider } from "thirdweb/react";
 import { FarcasterProvider } from "./context/Farcaster";
 import { ToastProvider } from "./providers/Toast";
+import { BottomNav } from "~/components/BottomNav";
 
 import "~/app/globals.css";
 
@@ -21,6 +22,7 @@ export default function RootLayout({
         <ThirdwebProvider>
           <FarcasterProvider>
             {children}
+            <BottomNav />
             <ToastProvider />
           </FarcasterProvider>
         </ThirdwebProvider>
