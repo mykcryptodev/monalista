@@ -66,7 +66,7 @@ export default function CreateListingPage() {
                 toast.dismiss();
                 toast.success("Listing created!");
               }}
-              onError={(err) => {
+              onError={(err: Error) => {
                 toast.dismiss();
                 toast.error(err.message);
               }}

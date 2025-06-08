@@ -1,5 +1,6 @@
 import { chain, client } from "~/constants";
 import { getContract, readContract } from "thirdweb";
+import { getChainMetadata } from "thirdweb/chains";
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "~/lib/redis";
 
@@ -10,6 +11,8 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 function base64ToArrayBuffer(base64: string): Buffer {
   return Buffer.from(base64, "base64");
 }
+
+const NATIVE_TOKEN_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 
 function getTokenImageCacheKey(chainName: string, tokenAddress: string): string {
   return `token-image:${chainName.toLowerCase()}:${tokenAddress.toLowerCase()}`;
@@ -65,6 +68,29 @@ export async function GET(request: NextRequest) {
           "Cache-Control": "public, max-age=31536000, immutable",
         },
       });
+    }
+
+    if (tokenAddress.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase()) {
+      try {
+        const meta = await getChainMetadata(chain);
+        const url = meta.icon?.url;
+        if (url) {
+          const iconRes = await fetch(url);
+          if (iconRes.ok) {
+            const buf = await iconRes.arrayBuffer();
+            const contentType = iconRes.headers.get("content-type") || "image/png";
+            await redis.set(cacheKey, { image: arrayBufferToBase64(buf), contentType });
+            return new NextResponse(buf, {
+              headers: {
+                "Content-Type": contentType,
+                "Cache-Control": "public, max-age=31536000, immutable",
+              },
+            });
+          }
+        }
+      } catch {
+        // ignore and fall through
+      }
     }
 
     const coingeckoUrl = `https://api.coingecko.com/api/v3/coins/${chainName.toLowerCase()}/contract/${tokenAddress}`;

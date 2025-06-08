@@ -184,7 +184,7 @@ export default function AuctionPage() {
                         toast.dismiss();
                         toast.success("Bid placed!");
                       }}
-                      onError={(error) => {
+                      onError={(error: Error) => {
                         toast.dismiss();
                         toast.error(error.message);
                       }}
@@ -206,7 +206,7 @@ export default function AuctionPage() {
                         toast.dismiss();
                         toast.success("Auction bought out!");
                       }}
-                      onError={(error) => {
+                      onError={(error: Error) => {
                         toast.dismiss();
                         toast.error(error.message);
                       }}
@@ -231,7 +231,7 @@ export default function AuctionPage() {
                       toast.dismiss();
                       toast.success("Auction cancelled");
                     }}
-                    onError={(error) => {
+                    onError={(error: Error) => {
                       toast.dismiss();
                       toast.error(error.message);
                     }}

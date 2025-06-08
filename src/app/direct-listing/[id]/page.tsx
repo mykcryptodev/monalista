@@ -158,7 +158,7 @@ export default function DirectListingPage() {
                       toast.dismiss();
                       toast.success("Listing bought!");
                     }}
-                    onError={(error) => {
+                    onError={(error: Error) => {
                       toast.dismiss();
                       toast.error(error.message);
                     }}
@@ -180,7 +180,7 @@ export default function DirectListingPage() {
                       toast.dismiss();
                       toast.success("Listing cancelled");
                     }}
-                    onError={(error) => {
+                    onError={(error: Error) => {
                       toast.dismiss();
                       toast.error(error.message);
                     }}

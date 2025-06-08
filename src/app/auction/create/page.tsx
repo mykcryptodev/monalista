@@ -185,7 +185,7 @@ export default function CreateAuctionPage() {
                 toast.dismiss();
                 toast.success("Auction created!");
               }}
-              onError={(err) => {
+              onError={(err: Error) => {
                 toast.dismiss();
                 toast.error(err.message);
               }}
