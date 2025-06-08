@@ -74,7 +74,9 @@ export default function SellPage() {
     checkApproval();
   }, [account, selectedNft?.tokenAddress]);
 
-  const isERC721 =
+  // Determine if the wallet owns only a single quantity of the selected NFT
+  // The logic works for both ERC721 and ERC1155 tokens
+  const ownsOneNft =
     selectedNft?.quantityOwned === "1" ||
     selectedNft?.quantityOwned === undefined;
 
@@ -107,7 +109,7 @@ export default function SellPage() {
           </label>
         </div>
         <NftDropdown onSelect={setSelectedNft} />
-        {selectedNft && !isERC721 && (
+        {selectedNft && !ownsOneNft && (
           <div>
             <label className="label py-0">
               <span className="label-text">Quantity</span>
@@ -273,7 +275,7 @@ export default function SellPage() {
                       contract: marketplaceContract,
                       assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
                       tokenId: BigInt(selectedNft!.id),
-                      quantity: !isERC721 ? BigInt(quantity) : undefined,
+                      quantity: !ownsOneNft ? BigInt(quantity) : undefined,
                       pricePerToken: price,
                       currencyContractAddress:
                         selectedToken && selectedToken.tokenAddress !== "native"
@@ -286,7 +288,7 @@ export default function SellPage() {
                       contract: marketplaceContract,
                       assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
                       tokenId: BigInt(selectedNft!.id),
-                      quantity: !isERC721 ? BigInt(quantity) : undefined,
+                      quantity: !ownsOneNft ? BigInt(quantity) : undefined,
                       currencyContractAddress: selectedToken
                         ? selectedToken.tokenAddress === ZERO_ADDRESS
                           ? NATIVE_TOKEN_ADDRESS
