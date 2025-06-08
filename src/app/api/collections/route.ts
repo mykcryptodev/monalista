@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 const ZAPPER_URL = "https://public.zapper.xyz/graphql";
 
 const COLLECTION_QUERY = `
-query CollectionMetadata($collections: [NftCollectionInput!]!) {
-  nftCollections(collections: $collections) {
+query CollectionMetadata($collections: [NftCollectionInputV2!]!) {
+  nftCollectionsV2(collections: $collections) {
     address
     name
     description
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const variables = {
-      collections: [{ address, network: "BASE_MAINNET" }],
+      collections: [{ address, chainId: 8453 }],
     };
     const resp = await fetch(ZAPPER_URL, {
       method: "POST",
