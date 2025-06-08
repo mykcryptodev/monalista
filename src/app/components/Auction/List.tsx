@@ -1,4 +1,5 @@
 import { useEffect, type FC, useState } from "react";
+import Link from "next/link";
 import { AuctionCard } from "./Card";
 import { marketplaceContract } from "~/constants";
 import { type EnglishAuction, getAllValidAuctions } from "thirdweb/extensions/marketplace";
@@ -18,7 +19,12 @@ export const AuctionList: FC = () => {
 
   return (
     <div className="mt-6">
-      <h1 className="font-bold mb-2">Auctions</h1>
+      <div className="flex items-center mb-2">
+        <h1 className="font-bold flex-1">Auctions</h1>
+        <Link href="/auction/create" className="btn btn-secondary btn-sm">
+          Create Auction
+        </Link>
+      </div>
       <div className="grid grid-cols-2 gap-4 p-2 bg-base-300 rounded-lg">
         {auctions.map((auction) => (
           <AuctionCard key={auction.id} auction={auction} />
