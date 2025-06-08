@@ -96,7 +96,7 @@ export default function AuctionPage() {
           </Link>
         </div>
 
-        <NFTProvider contract={contract} tokenId={auction.asset.id}>
+        <NFTProvider contract={contract} tokenId={auction.asset.id.toString()}>
           <div className="card bg-base-100 shadow-xl">
             <NFTMedia className="w-full h-64 object-cover" />
             <div className="card-body p-4">
@@ -148,7 +148,7 @@ export default function AuctionPage() {
                         bidInAuction({
                           contract: marketplaceContract,
                           auctionId: auction.id,
-                          bidAmountWei: auction.minimumBidAmount,
+                          bidAmount: auction.minimumBidAmount.toString(),
                         })
                       }
                       className="!btn !btn-primary !btn-sm"

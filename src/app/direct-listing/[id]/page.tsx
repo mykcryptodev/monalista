@@ -92,7 +92,7 @@ export default function DirectListingPage() {
         
         <NFTProvider
           contract={contract}
-          tokenId={BigInt(listing.asset.id)}
+          tokenId={listing.asset.id.toString()}
         >
           <div className="card bg-base-100 shadow-xl">
             <NFTMedia className="w-full h-64 object-cover" />
