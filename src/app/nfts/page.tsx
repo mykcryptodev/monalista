@@ -10,6 +10,17 @@ export default function MyNFTsPage() {
   const account = useActiveAccount();
   const [nfts, setNfts] = useState<OwnedNFT[]>([]);
   const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = query
+    ? nfts.filter((nft) => {
+        const name = nft.metadata.name || "";
+        return (
+          name.toLowerCase().includes(query.toLowerCase()) ||
+          nft.id.includes(query)
+        );
+      })
+    : nfts;
 
   useEffect(() => {
     if (!account) return;
@@ -35,16 +46,23 @@ export default function MyNFTsPage() {
         {account && (
           <>
             <h1 className="font-bold">My NFTs</h1>
+            <input
+              type="text"
+              placeholder="Search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="input input-bordered input-sm w-full mb-2"
+            />
             {loading ? (
               <div className="flex justify-center py-8">
                 <span className="loading loading-spinner" />
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4">
-                {nfts.map((nft) => (
+                {filtered.map((nft) => (
                   <NFTCard key={`${nft.tokenAddress}-${nft.id}`} nft={nft} />
                 ))}
-                {nfts.length === 0 && (
+                {filtered.length === 0 && (
                   <p className="col-span-2 text-center text-sm">No NFTs found.</p>
                 )}
               </div>
