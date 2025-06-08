@@ -9,6 +9,8 @@ import {
   bidInAuction,
   cancelAuction,
 } from "thirdweb/extensions/marketplace";
+import { allowance, approve } from "thirdweb/extensions/erc20";
+import { NATIVE_TOKEN_ADDRESS } from "thirdweb";
 import {
   NFTProvider,
   NFTMedia,
@@ -31,6 +33,36 @@ export default function AuctionPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const account = useActiveAccount();
+  const [hasAllowance, setHasAllowance] = useState(false);
+  const isNativeToken = (address: string) =>
+    address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
+
+  useEffect(() => {
+    const checkAllowance = async () => {
+      if (!account || !auction) return;
+      if (isNativeToken(auction.currencyContractAddress)) {
+        setHasAllowance(true);
+        return;
+      }
+      try {
+        const erc20 = getContract({
+          address: auction.currencyContractAddress as `0x${string}`,
+          chain,
+          client,
+        });
+        const value = await allowance({
+          contract: erc20,
+          owner: account.address,
+          spender: marketplaceContract.address,
+        });
+        setHasAllowance(value >= BigInt(auction.minimumBidAmount));
+      } catch (err) {
+        console.error(err);
+        setHasAllowance(false);
+      }
+    };
+    checkAllowance();
+  }, [account, auction]);
 
   useEffect(() => {
     const fetchAuction = async () => {
@@ -97,7 +129,7 @@ export default function AuctionPage() {
 
         <NFTProvider contract={contract} tokenId={BigInt(auction.asset.id)}>
           <div className="card bg-base-100 shadow-xl">
-            <NFTMedia className="w-full h-64 object-cover" />
+            <NFTMedia className="w-full h-64 object-cover nftmedia-hide-overlay" />
             <div className="card-body p-4">
               <h2 className="card-title">
                 <NFTName />
@@ -146,6 +178,7 @@ export default function AuctionPage() {
                   <ConnectButton client={client} />
                 ) : (
                   <>
+                    {hasAllowance ? (
                       <TransactionButton
                         transaction={() =>
                           bidInAuction({
@@ -154,25 +187,56 @@ export default function AuctionPage() {
                             bidAmountWei: BigInt(auction.minimumBidAmount),
                           })
                         }
-                      className="!btn !btn-primary !btn-sm"
-                      onTransactionSent={() => {
-                        toast.loading("Placing bid...");
-                      }}
-                      onTransactionConfirmed={() => {
-                        toast.dismiss();
-                        toast.success("Bid placed!");
-                        fetch("/api/cache/invalidate", {
-                          method: "POST",
-                          body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
-                        });
-                      }}
-                      onError={(error) => {
-                        toast.dismiss();
-                        toast.error(error.message);
-                      }}
-                    >
-                      Bid
-                    </TransactionButton>
+                        className="!btn !btn-primary !btn-sm"
+                        onTransactionSent={() => {
+                          toast.loading("Placing bid...");
+                        }}
+                        onTransactionConfirmed={() => {
+                          toast.dismiss();
+                          toast.success("Bid placed!");
+                          fetch("/api/cache/invalidate", {
+                            method: "POST",
+                            body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
+                          });
+                        }}
+                        onError={(error) => {
+                          toast.dismiss();
+                          toast.error(error.message);
+                        }}
+                      >
+                        Bid
+                      </TransactionButton>
+                    ) : (
+                      <TransactionButton
+                        transaction={() => {
+                          const erc20 = getContract({
+                            address: auction.currencyContractAddress as `0x${string}`,
+                            chain,
+                            client,
+                          });
+                          return approve({
+                            contract: erc20,
+                            spender: marketplaceContract.address,
+                            amountWei: BigInt(auction.minimumBidAmount),
+                          });
+                        }}
+                        className="!btn !btn-primary !btn-sm"
+                        onTransactionSent={() => {
+                          toast.loading("Approving currency...");
+                        }}
+                        onTransactionConfirmed={() => {
+                          toast.dismiss();
+                          toast.success("Currency approved");
+                          setHasAllowance(true);
+                        }}
+                        onError={(error) => {
+                          toast.dismiss();
+                          toast.error(error.message);
+                        }}
+                      >
+                        Approve
+                      </TransactionButton>
+                    )}
                     <TransactionButton
                       transaction={() =>
                         buyoutAuction({

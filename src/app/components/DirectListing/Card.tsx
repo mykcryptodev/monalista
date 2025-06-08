@@ -5,6 +5,7 @@ import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount } from "thir
 import Countdown from "../Countdown";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
+import { Account } from "~/app/components/Account";
 
 type Props = {
   listing: DirectListing;
@@ -24,15 +25,20 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
 
   return (
     <NFTProvider contract={contract} tokenId={BigInt(listing.asset.id)}>
-      <div 
+      <div
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="flex justify-end p-1">
+        <div className="p-2 flex items-center text-xs">
+          <Account
+            address={listing.creatorAddress}
+            avatarClassName="w-4 h-4"
+            className="w-1/2 overflow-hidden"
+          />
           <Countdown endTimeInSeconds={listing.endTimeInSeconds} />
         </div>
         <figure>
-          <NFTMedia />
+          <NFTMedia className="nftmedia-hide-overlay" />
         </figure>
         <div className="card-body p-2 gap-1">
           <h2 className="text-sm font-semibold truncate block w-full">{listing.asset.metadata.name}</h2>
@@ -55,3 +61,4 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
     </NFTProvider>
   );
 };
+
