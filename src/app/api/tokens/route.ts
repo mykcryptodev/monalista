@@ -91,8 +91,8 @@ export async function GET(request: NextRequest) {
         const bal = BigInt(nativeJson.result || "0x0").toString();
         tokens.unshift({
           tokenAddress: "native",
-          symbol: chain.nativeCurrency.symbol ?? "",
-          name: chain.nativeCurrency.name ?? "",
+          symbol: chain.nativeCurrency?.symbol ?? "",
+          name: chain.nativeCurrency?.name ?? "",
           balance: bal,
         });
       }
