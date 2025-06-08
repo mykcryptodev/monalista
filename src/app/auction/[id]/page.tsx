@@ -203,7 +203,7 @@ export default function AuctionPage() {
 
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="font-semibold">Min Bid:</span>
+                  <span className="font-semibold">Next Min Bid:</span>
                   <span className="flex items-center gap-1">
                     <TokenProvider
                       address={auction.currencyContractAddress as `0x${string}`}
@@ -217,7 +217,7 @@ export default function AuctionPage() {
                         fallbackComponent={<TokenIconFallback />}
                       />
                     </TokenProvider>
-                    {auction.minimumBidCurrencyValue.displayValue} {auction.minimumBidCurrencyValue.symbol}
+                    {minBidDisplay} {auction.minimumBidCurrencyValue.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between">
