@@ -4,6 +4,14 @@ import { chain } from "~/constants";
 
 const ZAPPER_URL = "https://api.zapper.xyz/v2/graphql";
 
+export type OwnedToken = {
+  tokenAddress: string;
+  symbol: string;
+  name?: string;
+  imgUrlV2?: string;
+  balance: string | number;
+};
+
 const TOKEN_QUERY = `
 query TokenBalances($addresses: [Address!]!, $first: Int, $chainIds: [Int!]) {
   portfolioV2(addresses: $addresses, chainIds: $chainIds) {
@@ -56,12 +64,12 @@ export async function GET(request: NextRequest) {
     };
     const edges: ZapperTokenEdge[] =
       json.data?.portfolioV2?.tokenBalances?.byToken?.edges || [];
-    const tokens = edges.map((e) => {
+    const tokens: OwnedToken[] = edges.map((e) => {
       return {
         tokenAddress: e.node.tokenAddress,
         symbol: e.node.symbol,
-        name: e.node.name,
-        imgUrlV2: e.node.imgUrlV2,
+        name: e.node.name ?? undefined,
+        imgUrlV2: e.node.imgUrlV2 ?? undefined,
         balance: e.node.balance,
       };
     });
