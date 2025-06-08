@@ -1,8 +1,8 @@
-import { type FC } from "react";
+import { type FC, useState } from "react";
 import { getContract } from "thirdweb";
 import { buyFromListing, type DirectListing } from "thirdweb/extensions/marketplace";
 import Countdown from "../Countdown";
-import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
+import { NFTProvider, NFTMedia, PayEmbed, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
 import TokenIconFallback from "../TokenIconFallback";
@@ -14,6 +14,7 @@ type Props = {
 export const DirectListingCard: FC<Props> = ({ listing }) => {
   const account = useActiveAccount();
   const router = useRouter();
+  const [showPay, setShowPay] = useState(false);
   const contract = getContract({
     chain,
     client,
@@ -60,15 +61,40 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
           </div>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
-              <TransactionButton
-                transaction={() => buyFromListing({
-                  contract: marketplaceContract,
-                  listingId: listing.id,
-                  quantity: BigInt(1),
-                  recipient: account?.address,
-                })}
-                className="!btn !btn-xs !w-fit !min-w-fit"
-              >Buy Now</TransactionButton>
+              <button
+                className="btn btn-primary btn-xs"
+                onClick={() => setShowPay(true)}
+              >
+                Buy Now
+              </button>
+              {showPay && (
+                <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
+                  <div className="relative">
+                    <button
+                      className="btn btn-xs btn-circle absolute right-2 top-2"
+                      onClick={() => setShowPay(false)}
+                    >
+                      ✕
+                    </button>
+                    <PayEmbed
+                      client={client}
+                      payOptions={{
+                        mode: "transaction",
+                        transaction: buyFromListing({
+                          contract: marketplaceContract,
+                          listingId: listing.id,
+                          quantity: BigInt(1),
+                          recipient: account?.address,
+                        }),
+                        metadata: listing.asset.metadata,
+                        onPurchaseSuccess: () => {
+                          setShowPay(false);
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

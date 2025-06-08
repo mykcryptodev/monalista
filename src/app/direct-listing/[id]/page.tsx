@@ -9,6 +9,7 @@ import {
   NFTMedia,
   NFTName,
   NFTDescription,
+  PayEmbed,
   TransactionButton,
   useActiveAccount,
   ConnectButton,
@@ -29,6 +30,7 @@ export default function DirectListingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const account = useActiveAccount();
+  const [showPay, setShowPay] = useState(false);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -147,34 +149,44 @@ export default function DirectListingPage() {
                 {!account ? (
                   <ConnectButton client={client} />
                 ) : (
-                  <TransactionButton
-                    transaction={() =>
-                      buyFromListing({
-                        contract: marketplaceContract,
-                        listingId: BigInt(listing.id),
-                        quantity: BigInt(1),
-                        recipient: account.address,
-                      })
-                    }
-                    className="!btn !btn-primary !btn-sm"
-                    onTransactionSent={() => {
-                      toast.loading("Buying listing...");
-                    }}
-                    onTransactionConfirmed={() => {
-                      toast.dismiss();
-                      toast.success("Listing bought!");
-                      fetch("/api/cache/invalidate", {
-                        method: "POST",
-                        body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
-                      });
-                    }}
-                    onError={(error: Error) => {
-                      toast.dismiss();
-                      toast.error(error.message);
-                    }}
-                  >
-                    Buy Now
-                  </TransactionButton>
+                  <>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowPay(true)}>
+                      Buy Now
+                    </button>
+                    {showPay && (
+                      <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
+                        <div className="relative">
+                          <button
+                            className="btn btn-xs btn-circle absolute right-2 top-2"
+                            onClick={() => setShowPay(false)}
+                          >
+                            ✕
+                          </button>
+                          <PayEmbed
+                            client={client}
+                            payOptions={{
+                              mode: "transaction",
+                              transaction: buyFromListing({
+                                contract: marketplaceContract,
+                                listingId: BigInt(listing.id),
+                                quantity: BigInt(1),
+                                recipient: account.address,
+                              }),
+                              metadata: listing.asset.metadata,
+                              onPurchaseSuccess: () => {
+                                toast.success("Listing bought!");
+                                fetch("/api/cache/invalidate", {
+                                  method: "POST",
+                                  body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
+                                });
+                                setShowPay(false);
+                              },
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
                 {account?.address?.toLowerCase() === listing.creatorAddress.toLowerCase() && (
                   <TransactionButton

@@ -1,8 +1,8 @@
-import { type FC } from "react";
+import { type FC, useState } from "react";
 import { getContract } from "thirdweb";
 import { buyoutAuction, type EnglishAuction } from "thirdweb/extensions/marketplace";
 import Countdown from "../Countdown";
-import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
+import { NFTProvider, NFTMedia, PayEmbed, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
 import TokenIconFallback from "../TokenIconFallback";
@@ -15,6 +15,7 @@ type Props = {
 export const AuctionCard: FC<Props> = ({ auction }) => {
   const account = useActiveAccount();
   const router = useRouter();
+  const [showPay, setShowPay] = useState(false);
   const contract = getContract({
     chain,
     client,
@@ -63,17 +64,38 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
           </div>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
-              <TransactionButton
-                transaction={() =>
-                  buyoutAuction({
-                    contract: marketplaceContract,
-                    auctionId: auction.id,
-                  })
-                }
-                className="!btn !btn-xs !w-fit !min-w-fit"
+              <button
+                className="btn btn-secondary btn-xs"
+                onClick={() => setShowPay(true)}
               >
                 Buyout
-              </TransactionButton>
+              </button>
+              {showPay && (
+                <div className="fixed inset-0 z-50 grid place-items-center bg-black/50">
+                  <div className="relative">
+                    <button
+                      className="btn btn-xs btn-circle absolute right-2 top-2"
+                      onClick={() => setShowPay(false)}
+                    >
+                      ✕
+                    </button>
+                    <PayEmbed
+                      client={client}
+                      payOptions={{
+                        mode: "transaction",
+                        transaction: buyoutAuction({
+                          contract: marketplaceContract,
+                          auctionId: auction.id,
+                        }),
+                        metadata: auction.asset.metadata,
+                        onPurchaseSuccess: () => {
+                          setShowPay(false);
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
