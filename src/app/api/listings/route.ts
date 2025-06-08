@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { getAllValidListings, type DirectListing } from "thirdweb/extensions/marketplace";
 import { marketplaceContract } from "~/constants";
 import { getCache, setCache } from "~/lib/cache";
+import { serializeBigInts } from "~/lib/serialize";
 
 const CACHE_KEY = "listings";
 
@@ -13,7 +14,7 @@ export async function GET() {
     return NextResponse.json(cached);
   }
   const listings = await getAllValidListings({ contract: marketplaceContract });
-  // cache for 60 seconds
-  await setCache(CACHE_KEY, listings, { ex: 60 });
-  return NextResponse.json(listings);
+  const data = serializeBigInts(listings);
+  await setCache(CACHE_KEY, data, { ex: 60 });
+  return NextResponse.json(data);
 }

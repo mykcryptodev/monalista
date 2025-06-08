@@ -145,8 +145,8 @@ export default function AuctionPage() {
                         transaction={() =>
                           bidInAuction({
                             contract: marketplaceContract,
-                            auctionId: auction.id,
-                            bidAmountWei: auction.minimumBidAmount,
+                            auctionId: BigInt(auction.id),
+                            bidAmountWei: BigInt(auction.minimumBidAmount),
                           })
                         }
                       className="!btn !btn-primary !btn-sm"
@@ -172,7 +172,7 @@ export default function AuctionPage() {
                       transaction={() =>
                         buyoutAuction({
                           contract: marketplaceContract,
-                          auctionId: auction.id,
+                          auctionId: BigInt(auction.id),
                         })
                       }
                       className="!btn !btn-secondary !btn-sm"
@@ -201,7 +201,7 @@ export default function AuctionPage() {
                     transaction={() =>
                       cancelAuction({
                         contract: marketplaceContract,
-                        auctionId: auction.id,
+                        auctionId: BigInt(auction.id),
                       })
                     }
                     className="!btn !btn-error !btn-sm"

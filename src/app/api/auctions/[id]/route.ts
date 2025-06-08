@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { getAuction, type EnglishAuction } from "thirdweb/extensions/marketplace";
 import { marketplaceContract } from "~/constants";
 import { getCache, setCache } from "~/lib/cache";
+import { serializeBigInts } from "~/lib/serialize";
 type ListingStatus =
   | "UNSET"
   | "CREATED"
@@ -26,11 +27,12 @@ export async function GET(
     contract: marketplaceContract,
     auctionId: BigInt(id),
   });
+  const data = serializeBigInts(auction);
   const status = auction.status as ListingStatus;
   if (status === "COMPLETED" || status === "CANCELLED" || status === "EXPIRED") {
-    await setCache(key, auction);
+    await setCache(key, data);
   } else {
-    await setCache(key, auction, { ex: 60 });
+    await setCache(key, data, { ex: 60 });
   }
-  return NextResponse.json(auction);
+  return NextResponse.json(data);
 }

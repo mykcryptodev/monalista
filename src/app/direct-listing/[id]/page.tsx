@@ -126,12 +126,14 @@ export default function DirectListingPage() {
                   <ConnectButton client={client} />
                 ) : (
                   <TransactionButton
-                    transaction={() => buyFromListing({
-                      contract: marketplaceContract,
-                      listingId: listing.id,
-                      quantity: BigInt(1),
-                      recipient: account.address,
-                    })}
+                    transaction={() =>
+                      buyFromListing({
+                        contract: marketplaceContract,
+                        listingId: BigInt(listing.id),
+                        quantity: BigInt(1),
+                        recipient: account.address,
+                      })
+                    }
                     className="!btn !btn-primary !btn-sm"
                     onTransactionSent={() => {
                       toast.loading("Buying listing...");
@@ -154,10 +156,12 @@ export default function DirectListingPage() {
                 )}
                 {account?.address?.toLowerCase() === listing.creatorAddress.toLowerCase() && (
                   <TransactionButton
-                    transaction={() => cancelListing({
-                      contract: marketplaceContract,
-                      listingId: listing.id,
-                    })}
+                    transaction={() =>
+                      cancelListing({
+                        contract: marketplaceContract,
+                        listingId: BigInt(listing.id),
+                      })
+                    }
                     className="!btn !btn-error !btn-sm"
                     onTransactionSent={() => {
                       toast.loading("Cancelling listing...");
