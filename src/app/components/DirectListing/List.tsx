@@ -1,8 +1,7 @@
 import { useEffect, type FC } from "react";
 import { DirectListingCard } from "./Card";
 import Link from "next/link";
-import { marketplaceContract } from "~/constants";
-import { type DirectListing, getAllValidListings } from "thirdweb/extensions/marketplace";
+import { type DirectListing } from "thirdweb/extensions/marketplace";
 import { useState } from "react";
 
 export const DirectListingList: FC = () => {
@@ -10,9 +9,8 @@ export const DirectListingList: FC = () => {
 
   useEffect(() => {
     const fetchListings = async () => {
-      const listings = await getAllValidListings({
-        contract: marketplaceContract,
-      });
+      const res = await fetch("/api/listings");
+      const listings: DirectListing[] = await res.json();
       setListings(listings);
     };
     fetchListings();

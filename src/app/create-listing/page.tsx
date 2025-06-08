@@ -65,6 +65,10 @@ export default function CreateListingPage() {
               onTransactionConfirmed={() => {
                 toast.dismiss();
                 toast.success("Listing created!");
+                fetch("/api/cache/invalidate", {
+                  method: "POST",
+                  body: JSON.stringify({ keys: ["listings"] }),
+                });
               }}
               onError={(err) => {
                 toast.dismiss();
