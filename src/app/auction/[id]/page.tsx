@@ -143,14 +143,14 @@ export default function AuctionPage() {
                   <ConnectButton client={client} />
                 ) : (
                   <>
-                    <TransactionButton
-                      transaction={() =>
-                        bidInAuction({
-                          contract: marketplaceContract,
-                          auctionId: auction.id,
-                          bidAmount: auction.minimumBidAmount.toString(),
-                        })
-                      }
+                      <TransactionButton
+                        transaction={() =>
+                          bidInAuction({
+                            contract: marketplaceContract,
+                            auctionId: auction.id,
+                            bidAmountWei: auction.minimumBidAmount,
+                          })
+                        }
                       className="!btn !btn-primary !btn-sm"
                       onTransactionSent={() => {
                         toast.loading("Placing bid...");
