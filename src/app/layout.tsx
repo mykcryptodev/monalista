@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="black">
-      <body>
+      <body className="pb-20">
         <ThirdwebProvider>
           <FarcasterProvider>
             {children}
