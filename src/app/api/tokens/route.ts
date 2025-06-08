@@ -44,28 +44,42 @@ export async function GET(request: NextRequest) {
     }
 
     const json = await resp.json();
-    const edges = json.data?.portfolioV2?.tokenBalances?.byToken?.edges || [];
-    const tokens = edges.map((e: any) => e.node);
+    type ZapperTokenEdge = {
+      node: {
+        symbol: string;
+        tokenAddress: string;
+        balance: string | number;
+        imgUrlV2?: string;
+        name?: string;
+        network: { name: string };
+      };
+    };
+    const edges: ZapperTokenEdge[] =
+      json.data?.portfolioV2?.tokenBalances?.byToken?.edges || [];
+    const tokens = edges.map((e) => e.node);
 
     try {
-      const nativeResp = await fetch((chain as any).rpc[0], {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "eth_getBalance",
-          params: [address, "latest"],
-        }),
-      });
-      const nativeJson = await nativeResp.json();
-      const bal = BigInt(nativeJson.result || "0x0").toString();
-      tokens.unshift({
-        tokenAddress: "native",
-        symbol: chain.nativeCurrency.symbol,
-        name: chain.nativeCurrency.name,
-        balance: bal,
-      });
+      const rpcUrl = chain.rpcUrls?.default?.http?.[0];
+      if (rpcUrl) {
+        const nativeResp = await fetch(rpcUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "eth_getBalance",
+            params: [address, "latest"],
+          }),
+        });
+        const nativeJson = await nativeResp.json();
+        const bal = BigInt(nativeJson.result || "0x0").toString();
+        tokens.unshift({
+          tokenAddress: "native",
+          symbol: chain.nativeCurrency.symbol,
+          name: chain.nativeCurrency.name,
+          balance: bal,
+        });
+      }
     } catch (e) {
       console.error(e);
     }

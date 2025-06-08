@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCache, setCache } from "~/lib/cache";
-import { chain } from "~/constants";
 
 const ZAPPER_URL = "https://api.zapper.xyz/v2/graphql";
 
@@ -52,13 +51,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "failed to fetch nfts" }, { status: 500 });
     }
     const json = await resp.json();
-    const edges = json.data?.portfolioV2?.nftBalances?.byToken?.edges || [];
+    type ZapperNftEdge = {
+      node: {
+        token: {
+          tokenId: string;
+          name?: string | null;
+          collection: { address: string };
+          mediasV3?: {
+            images?: { edges?: { node: { thumbnail?: string | null } }[] };
+          };
+        };
+      };
+    };
+    const edges: ZapperNftEdge[] =
+      json.data?.portfolioV2?.nftBalances?.byToken?.edges || [];
     const start = (page - 1) * pageSize;
     const slice = edges.slice(start, start + pageSize);
-    const nfts = slice.map((e: any) => {
+    const nfts = slice.map((e) => {
       const t = e.node.token;
       const image = t.mediasV3?.images?.edges?.[0]?.node?.thumbnail || null;
-      return { id: t.tokenId, tokenAddress: t.collection.address, metadata: { name: t.name, image } };
+      return {
+        id: t.tokenId,
+        tokenAddress: t.collection.address,
+        metadata: { name: t.name, image },
+      };
     });
     const hasMore = edges.length >= first;
     const data = { nfts, hasMore };
