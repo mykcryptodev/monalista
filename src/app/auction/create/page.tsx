@@ -20,12 +20,13 @@ import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
 import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
+import { TokenDropdown, type OwnedToken } from "~/app/components/TokenDropdown";
 
 export default function CreateAuctionPage() {
   const account = useActiveAccount();
   const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
   const [quantity, setQuantity] = useState("");
-  const [currencyAddress, setCurrencyAddress] = useState("");
+  const [selectedToken, setSelectedToken] = useState<OwnedToken | null>(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [timeBuffer, setTimeBuffer] = useState("");
@@ -85,14 +86,9 @@ export default function CreateAuctionPage() {
         </div>
         <div>
           <label className="label py-0">
-            <span className="label-text">Currency Address</span>
+            <span className="label-text">Currency</span>
           </label>
-          <input
-            type="text"
-            value={currencyAddress}
-            onChange={(e) => setCurrencyAddress(e.target.value)}
-            className="input input-bordered input-sm w-full"
-          />
+          <TokenDropdown onSelect={setSelectedToken} />
         </div>
         <div>
           <label className="label py-0">
@@ -140,7 +136,7 @@ export default function CreateAuctionPage() {
         </div>
         <div>
           <label className="label py-0">
-            <span className="label-text">Minimum Bid (ETH)</span>
+            <span className="label-text">Minimum Bid</span>
           </label>
           <input
             type="text"
@@ -151,7 +147,7 @@ export default function CreateAuctionPage() {
         </div>
         <div>
           <label className="label py-0">
-            <span className="label-text">Buyout Bid (ETH)</span>
+            <span className="label-text">Buyout Bid</span>
           </label>
           <input
             type="text"
@@ -215,9 +211,10 @@ export default function CreateAuctionPage() {
                   assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
                   tokenId: BigInt(selectedNft!.id),
                   quantity: quantity ? BigInt(quantity) : undefined,
-                  currencyContractAddress: currencyAddress
-                    ? (currencyAddress as `0x${string}`)
-                    : undefined,
+                  currencyContractAddress:
+                    selectedToken && selectedToken.tokenAddress !== "native"
+                      ? (selectedToken.tokenAddress as `0x${string}`)
+                      : undefined,
                   startTimestamp: startTime ? new Date(startTime) : undefined,
                   endTimestamp: endTime ? new Date(endTime) : undefined,
                   timeBufferInSeconds: timeBuffer ? Number(timeBuffer) : undefined,
@@ -226,7 +223,7 @@ export default function CreateAuctionPage() {
                   buyoutBidAmount: buyoutBid,
                 })
               }
-              disabled={!selectedNft}
+              disabled={!selectedNft || !selectedToken}
               className="!btn !btn-primary !btn-sm"
               onTransactionSent={() => toast.loading("Creating auction...")}
               onTransactionConfirmed={() => {

@@ -1,21 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Insight } from "thirdweb";
-import { client, chain } from "~/constants";
+import { getCache, setCache } from "~/lib/cache";
+import { chain } from "~/constants";
 
-function convertBigInt(obj: unknown): unknown {
-  if (typeof obj === "bigint") {
-    return obj.toString();
+const ZAPPER_URL = "https://api.zapper.xyz/v2/graphql";
+
+const NFT_QUERY = `
+query NFTBalances_USDSorted($addresses: [Address!]!, $first: Int) {
+  portfolioV2(addresses: $addresses) {
+    nftBalances {
+      byToken(first: $first) {
+        edges {
+          node {
+            token {
+              tokenId
+              name
+              collection { address }
+              mediasV3 { images { edges { node { thumbnail } } } }
+            }
+          }
+        }
+      }
+    }
   }
-  if (Array.isArray(obj)) {
-    return obj.map(convertBigInt);
-  }
-  if (obj && typeof obj === "object") {
-    return Object.fromEntries(
-      Object.entries(obj as Record<string, unknown>).map(([k, v]) => [k, convertBigInt(v)])
-    );
-  }
-  return obj;
-}
+}`;
 
 export async function GET(request: NextRequest) {
   const address = request.nextUrl.searchParams.get("address");
@@ -24,18 +31,39 @@ export async function GET(request: NextRequest) {
   if (!address) {
     return NextResponse.json({ error: "address query param is required" }, { status: 400 });
   }
+  const cacheKey = `nfts:${address}:${page}`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached);
+  }
   try {
     const pageSize = 50;
-    const nfts = await Insight.getOwnedNFTs({
-      client,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      chains: [{ ...(chain as any), rpc: (chain as any).rpc }],
-      ownerAddress: address,
-      includeMetadata: true,
-      queryOptions: { page, limit: pageSize },
+    const first = page * pageSize;
+    const resp = await fetch(ZAPPER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "zapper-api-key": process.env.ZAPPER_API_KEY as string,
+      },
+      body: JSON.stringify({ query: NFT_QUERY, variables: { addresses: [address], first } }),
     });
-    const sanitized = convertBigInt(nfts);
-    return NextResponse.json({ nfts: sanitized, hasMore: nfts.length === pageSize });
+    if (!resp.ok) {
+      console.error(await resp.text());
+      return NextResponse.json({ error: "failed to fetch nfts" }, { status: 500 });
+    }
+    const json = await resp.json();
+    const edges = json.data?.portfolioV2?.nftBalances?.byToken?.edges || [];
+    const start = (page - 1) * pageSize;
+    const slice = edges.slice(start, start + pageSize);
+    const nfts = slice.map((e: any) => {
+      const t = e.node.token;
+      const image = t.mediasV3?.images?.edges?.[0]?.node?.thumbnail || null;
+      return { id: t.tokenId, tokenAddress: t.collection.address, metadata: { name: t.name, image } };
+    });
+    const hasMore = edges.length >= first;
+    const data = { nfts, hasMore };
+    await setCache(cacheKey, data, { ex: 60 });
+    return NextResponse.json(data);
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "failed to fetch nfts" }, { status: 500 });
