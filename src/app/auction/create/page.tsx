@@ -32,76 +32,116 @@ export default function CreateAuctionPage() {
             ← Back
           </Link>
         </div>
-        <input
-          type="text"
-          placeholder="NFT Token Address"
-          value={tokenAddress}
-          onChange={(e) => setTokenAddress(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Token ID"
-          value={tokenId}
-          onChange={(e) => setTokenId(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Quantity"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Currency Address"
-          value={currencyAddress}
-          onChange={(e) => setCurrencyAddress(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="datetime-local"
-          placeholder="Start Time"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="datetime-local"
-          placeholder="End Time"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Time Buffer (s)"
-          value={timeBuffer}
-          onChange={(e) => setTimeBuffer(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Bid Buffer (bps)"
-          value={bidBuffer}
-          onChange={(e) => setBidBuffer(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Minimum Bid (ETH)"
-          value={minBid}
-          onChange={(e) => setMinBid(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Buyout Bid (ETH)"
-          value={buyoutBid}
-          onChange={(e) => setBuyoutBid(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
+        <div>
+          <label className="label py-0">
+            <span className="label-text">NFT Token Address</span>
+          </label>
+          <input
+            type="text"
+            value={tokenAddress}
+            onChange={(e) => setTokenAddress(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Token ID</span>
+          </label>
+          <input
+            type="text"
+            value={tokenId}
+            onChange={(e) => setTokenId(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Quantity</span>
+          </label>
+          <input
+            type="text"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Currency Address</span>
+          </label>
+          <input
+            type="text"
+            value={currencyAddress}
+            onChange={(e) => setCurrencyAddress(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Start Time</span>
+          </label>
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">End Time</span>
+          </label>
+          <input
+            type="datetime-local"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Time Buffer (s)</span>
+          </label>
+          <input
+            type="text"
+            value={timeBuffer}
+            onChange={(e) => setTimeBuffer(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Bid Buffer (bps)</span>
+          </label>
+          <input
+            type="text"
+            value={bidBuffer}
+            onChange={(e) => setBidBuffer(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Minimum Bid (ETH)</span>
+          </label>
+          <input
+            type="text"
+            value={minBid}
+            onChange={(e) => setMinBid(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
+        <div>
+          <label className="label py-0">
+            <span className="label-text">Buyout Bid (ETH)</span>
+          </label>
+          <input
+            type="text"
+            value={buyoutBid}
+            onChange={(e) => setBuyoutBid(e.target.value)}
+            className="input input-bordered input-sm w-full"
+          />
+        </div>
         <div className="flex justify-end pt-2">
           {!account ? (
             <ConnectButton client={client} />
