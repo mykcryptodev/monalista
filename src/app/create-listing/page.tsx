@@ -19,11 +19,11 @@ import { isApprovedForAll as isApprovedForAll1155 } from "thirdweb/extensions/er
 import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
+import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
 
 export default function CreateListingPage() {
   const account = useActiveAccount();
-  const [tokenAddress, setTokenAddress] = useState("");
-  const [tokenId, setTokenId] = useState("");
+  const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
   const [price, setPrice] = useState("");
   const [approved, setApproved] = useState(false);
 
@@ -64,20 +64,7 @@ export default function CreateListingPage() {
             ← Back
           </Link>
         </div>
-        <input
-          type="text"
-          placeholder="NFT Token Address"
-          value={tokenAddress}
-          onChange={(e) => setTokenAddress(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
-        <input
-          type="text"
-          placeholder="Token ID"
-          value={tokenId}
-          onChange={(e) => setTokenId(e.target.value)}
-          className="input input-bordered input-sm w-full"
-        />
+        <NftDropdown onSelect={setSelectedNft} />
         <input
           type="text"
           placeholder="Price (ETH)"
@@ -137,12 +124,13 @@ export default function CreateListingPage() {
               transaction={() =>
                 createListing({
                   contract: marketplaceContract,
-                  assetContractAddress: tokenAddress as `0x${string}`,
-                  tokenId: BigInt(tokenId),
+                  assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
+                  tokenId: BigInt(selectedNft!.id),
                   quantity: 1n,
                   pricePerToken: price,
                 })
               }
+              disabled={!selectedNft}
               className="!btn !btn-primary !btn-sm"
               onTransactionSent={() => toast.loading("Creating listing...")}
               onTransactionConfirmed={() => {

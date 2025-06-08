@@ -19,11 +19,11 @@ import { isApprovedForAll as isApprovedForAll1155 } from "thirdweb/extensions/er
 import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
+import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
 
 export default function CreateAuctionPage() {
   const account = useActiveAccount();
-  const [tokenAddress, setTokenAddress] = useState("");
-  const [tokenId, setTokenId] = useState("");
+  const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
   const [quantity, setQuantity] = useState("");
   const [currencyAddress, setCurrencyAddress] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -71,28 +71,7 @@ export default function CreateAuctionPage() {
             ← Back
           </Link>
         </div>
-        <div>
-          <label className="label py-0">
-            <span className="label-text">NFT Token Address</span>
-          </label>
-          <input
-            type="text"
-            value={tokenAddress}
-            onChange={(e) => setTokenAddress(e.target.value)}
-            className="input input-bordered input-sm w-full"
-          />
-        </div>
-        <div>
-          <label className="label py-0">
-            <span className="label-text">Token ID</span>
-          </label>
-          <input
-            type="text"
-            value={tokenId}
-            onChange={(e) => setTokenId(e.target.value)}
-            className="input input-bordered input-sm w-full"
-          />
-        </div>
+        <NftDropdown onSelect={setSelectedNft} />
         <div>
           <label className="label py-0">
             <span className="label-text">Quantity</span>
@@ -233,8 +212,8 @@ export default function CreateAuctionPage() {
               transaction={() =>
                 createAuction({
                   contract: marketplaceContract,
-                  assetContractAddress: tokenAddress as `0x${string}`,
-                  tokenId: BigInt(tokenId),
+                  assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
+                  tokenId: BigInt(selectedNft!.id),
                   quantity: quantity ? BigInt(quantity) : undefined,
                   currencyContractAddress: currencyAddress
                     ? (currencyAddress as `0x${string}`)
@@ -247,6 +226,7 @@ export default function CreateAuctionPage() {
                   buyoutBidAmount: buyoutBid,
                 })
               }
+              disabled={!selectedNft}
               className="!btn !btn-primary !btn-sm"
               onTransactionSent={() => toast.loading("Creating auction...")}
               onTransactionConfirmed={() => {
