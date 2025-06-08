@@ -12,7 +12,7 @@ function ShoppingBagIcon(props: React.SVGProps<SVGSVGElement>) {
       strokeWidth={1.5}
       stroke="currentColor"
       aria-hidden="true"
-      className="w-6 h-6"
+      className="w-4 h-4"
       {...props}
     >
       <path
@@ -33,7 +33,7 @@ function SquaresIcon(props: React.SVGProps<SVGSVGElement>) {
       strokeWidth={1.5}
       stroke="currentColor"
       aria-hidden="true"
-      className="w-6 h-6"
+      className="w-4 h-4"
       {...props}
     >
       <path
@@ -54,7 +54,7 @@ function BellIcon(props: React.SVGProps<SVGSVGElement>) {
       strokeWidth={1.5}
       stroke="currentColor"
       aria-hidden="true"
-      className="w-6 h-6"
+      className="w-4 h-4"
       {...props}
     >
       <path
@@ -71,16 +71,16 @@ export function BottomNav() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <nav className="btm-nav fixed bottom-0 inset-x-0 w-full flex justify-around">
-      <Link href="/" className={isActive("/") ? "active" : ""}>
+    <nav className="btm-nav bg-base-200/80 backdrop-blur-sm p-2 fixed bottom-0 inset-x-0 w-full flex justify-around text-xs">
+      <Link href="/" className={isActive("/") ? "active" : "flex flex-col items-center"}>
         <ShoppingBagIcon />
         <span className="btm-nav-label">Shop</span>
       </Link>
-      <Link href="/nfts" className={isActive("/nfts") ? "active" : ""}>
+      <Link href="/nfts" className={isActive("/nfts") ? "active" : "flex flex-col items-center"}>
         <SquaresIcon />
         <span className="btm-nav-label">My NFTs</span>
       </Link>
-      <Link href="/notifications" className={isActive("/notifications") ? "active" : ""}>
+      <Link href="/notifications" className={isActive("/notifications") ? "active" : "flex flex-col items-center"}>
         <BellIcon />
         <span className="btm-nav-label">Notifications</span>
       </Link>
