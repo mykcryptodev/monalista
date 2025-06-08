@@ -6,10 +6,13 @@ import {
   ConnectButton,
   TransactionButton,
   useActiveAccount,
+  TokenProvider,
+  TokenIcon,
 } from "thirdweb/react";
 import { createAuction } from "thirdweb/extensions/marketplace";
-import { client, marketplaceContract } from "~/constants";
+import { client, marketplaceContract, chain } from "~/constants";
 import { toast } from "react-toastify";
+import TokenIconFallback from "~/app/components/TokenIconFallback";
 
 export default function CreateAuctionPage() {
   const account = useActiveAccount();
@@ -75,6 +78,18 @@ export default function CreateAuctionPage() {
             onChange={(e) => setCurrencyAddress(e.target.value)}
             className="input input-bordered input-sm w-full"
           />
+          {currencyAddress && (
+            <div className="mt-2">
+              <TokenProvider address={currencyAddress as `0x${string}`} client={client} chain={chain}>
+                <TokenIcon
+                  className="w-6 h-6"
+                  iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${currencyAddress}`}
+                  loadingComponent={<TokenIconFallback />}
+                  fallbackComponent={<TokenIconFallback />}
+                />
+              </TokenProvider>
+            </div>
+          )}
         </div>
         <div>
           <label className="label py-0">

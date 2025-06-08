@@ -5,18 +5,21 @@ import { useEffect, useState } from "react";
 import { getContract } from "thirdweb";
 import { getListing, type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
 import { 
-  NFTProvider, 
-  NFTMedia, 
-  NFTName, 
+  NFTProvider,
+  NFTMedia,
+  NFTName,
   NFTDescription,
   TransactionButton,
   useActiveAccount,
-  ConnectButton
+  ConnectButton,
+  TokenProvider,
+  TokenIcon
 } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import Link from "next/link";
 import { Account } from "~/app/components/Account";
 import { toast } from "react-toastify";
+import TokenIconFallback from "~/app/components/TokenIconFallback";
 
 export default function DirectListingPage() {
   const params = useParams();
@@ -106,7 +109,21 @@ export default function DirectListingPage() {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="font-semibold">Price:</span>
-                  <span>{listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}</span>
+                  <span className="flex items-center gap-1">
+                    <TokenProvider
+                      address={listing.currencyContractAddress as `0x${string}`}
+                      client={client}
+                      chain={chain}
+                    >
+                      <TokenIcon
+                        className="w-4 h-4"
+                        iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${listing.currencyContractAddress}`}
+                        loadingComponent={<TokenIconFallback />}
+                        fallbackComponent={<TokenIconFallback />}
+                      />
+                    </TokenProvider>
+                    {listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Token ID:</span>

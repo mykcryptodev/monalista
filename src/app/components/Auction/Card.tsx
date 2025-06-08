@@ -1,9 +1,10 @@
 import { type FC } from "react";
 import { getContract } from "thirdweb";
 import { buyoutAuction, type EnglishAuction } from "thirdweb/extensions/marketplace";
-import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount } from "thirdweb/react";
+import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount, TokenProvider, TokenIcon } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
+import TokenIconFallback from "../TokenIconFallback";
 
 type Props = {
   auction: EnglishAuction;
@@ -35,9 +36,20 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
           <h2 className="text-sm font-semibold truncate block w-full">
             {auction.asset.metadata.name}
           </h2>
-          <p className="text-xs w-full truncate">
-            {auction.minimumBidCurrencyValue.displayValue}{" "}
-            {auction.minimumBidCurrencyValue.symbol}
+          <p className="text-xs w-full truncate flex items-center gap-1">
+            <TokenProvider
+              address={auction.currencyContractAddress as `0x${string}`}
+              client={client}
+              chain={chain}
+            >
+              <TokenIcon
+                className="w-4 h-4"
+                iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`}
+                loadingComponent={<TokenIconFallback />}
+                fallbackComponent={<TokenIconFallback />}
+              />
+            </TokenProvider>
+            {auction.minimumBidCurrencyValue.displayValue} {auction.minimumBidCurrencyValue.symbol}
           </p>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
