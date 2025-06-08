@@ -21,6 +21,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
+import { CollectionAbout } from "~/app/components/CollectionAbout";
 
 export default function DirectListingPage() {
   const params = useParams();
@@ -206,6 +207,7 @@ export default function DirectListingPage() {
             </div>
           </div>
         </NFTProvider>
+        <CollectionAbout address={listing.asset.tokenAddress} />
       </div>
     </main>
   );

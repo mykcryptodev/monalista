@@ -30,6 +30,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
+import { CollectionAbout } from "~/app/components/CollectionAbout";
 import { toTokens, toUnits } from "thirdweb/utils";
 
 export default function AuctionPage() {
@@ -355,6 +356,7 @@ export default function AuctionPage() {
             </div>
           </div>
         </NFTProvider>
+        <CollectionAbout address={auction.asset.tokenAddress} />
         {bidModalOpen && (
           <dialog className="modal modal-open">
             <div className="modal-box space-y-2">
