@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 
 export type OwnedNFT = {
@@ -22,6 +22,7 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
   const [manual, setManual] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
   const [manualId, setManualId] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!account) return;
@@ -30,6 +31,21 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
       .then((data) => setNfts(data))
       .catch(console.error);
   }, [account]);
+
+  useEffect(() => {
+    if (!open && !manual) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+        setManual(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open, manual]);
 
   const filtered = query
     ? nfts.filter((nft) => {
@@ -57,7 +73,7 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <input
         type="text"
         placeholder="Select NFT"
@@ -106,6 +122,18 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
             Import manually
           </li>
         </ul>
+      )}
+      {!manual && (
+        <button
+          type="button"
+          className="btn btn-xs btn-ghost mt-1 w-full"
+          onClick={() => {
+            setManual(true);
+            setOpen(false);
+          }}
+        >
+          Import manually
+        </button>
       )}
       {manual && (
         <div className="absolute z-10 mt-1 w-full space-y-2 rounded-box bg-base-200 p-2 shadow">
