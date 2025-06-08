@@ -9,9 +9,9 @@ query CollectionMetadata($collections: [NftCollectionInput!]!) {
     address
     name
     description
-    imageUrl
+    cardImageUrl
     stats {
-      floorPriceNative
+      floorPriceEth
     }
   }
 }`;
