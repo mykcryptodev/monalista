@@ -29,7 +29,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
-import { parseUnits } from "~/lib/units";
+import { toUnits } from "thirdweb/utils";
 
 export default function AuctionPage() {
   const params = useParams();
@@ -63,7 +63,7 @@ export default function AuctionPage() {
           owner: account.address,
           spender: marketplaceContract.address,
         });
-        const amountWei = parseUnits(
+        const amountWei = toUnits(
           bidAmount || auction.minimumBidCurrencyValue.displayValue,
           auction.minimumBidCurrencyValue.decimals ?? 18,
         );
@@ -353,7 +353,7 @@ export default function AuctionPage() {
                       bidInAuction({
                         contract: marketplaceContract,
                         auctionId: BigInt(auction.id),
-                        bidAmountWei: parseUnits(bidAmount, decimals),
+                        bidAmountWei: toUnits(bidAmount, decimals),
                       })
                     }
                     disabled={!isBidValid}
@@ -388,7 +388,7 @@ export default function AuctionPage() {
                       return approve({
                         contract: erc20,
                         spender: marketplaceContract.address,
-                        amountWei: parseUnits(bidAmount, decimals),
+                        amountWei: toUnits(bidAmount, decimals),
                       });
                     }}
                     disabled={!isBidValid}
