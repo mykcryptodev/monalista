@@ -19,12 +19,15 @@ import {
   TransactionButton,
   useActiveAccount,
   ConnectButton,
+  TokenProvider,
+  TokenIcon,
 } from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import Link from "next/link";
 import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
+import TokenIconFallback from "~/app/components/TokenIconFallback";
 
 export default function AuctionPage() {
   const params = useParams();
@@ -143,16 +146,38 @@ export default function AuctionPage() {
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="font-semibold">Min Bid:</span>
-                  <span>
-                    {auction.minimumBidCurrencyValue.displayValue}{" "}
-                    {auction.minimumBidCurrencyValue.symbol}
+                  <span className="flex items-center gap-1">
+                    <TokenProvider
+                      address={auction.currencyContractAddress as `0x${string}`}
+                      client={client}
+                      chain={chain}
+                    >
+                      <TokenIcon
+                        className="w-4 h-4"
+                        iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`}
+                        loadingComponent={<TokenIconFallback />}
+                        fallbackComponent={<TokenIconFallback />}
+                      />
+                    </TokenProvider>
+                    {auction.minimumBidCurrencyValue.displayValue} {auction.minimumBidCurrencyValue.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold">Buyout:</span>
-                  <span>
-                    {auction.buyoutCurrencyValue.displayValue}{" "}
-                    {auction.buyoutCurrencyValue.symbol}
+                  <span className="flex items-center gap-1">
+                    <TokenProvider
+                      address={auction.currencyContractAddress as `0x${string}`}
+                      client={client}
+                      chain={chain}
+                    >
+                      <TokenIcon
+                        className="w-4 h-4"
+                        iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`}
+                        loadingComponent={<TokenIconFallback />}
+                        fallbackComponent={<TokenIconFallback />}
+                      />
+                    </TokenProvider>
+                    {auction.buyoutCurrencyValue.displayValue} {auction.buyoutCurrencyValue.symbol}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -256,7 +281,7 @@ export default function AuctionPage() {
                           body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
                         });
                       }}
-                      onError={(error) => {
+                      onError={(error: Error) => {
                         toast.dismiss();
                         toast.error(error.message);
                       }}
@@ -285,7 +310,7 @@ export default function AuctionPage() {
                         body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
                       });
                     }}
-                    onError={(error) => {
+                    onError={(error: Error) => {
                       toast.dismiss();
                       toast.error(error.message);
                     }}
