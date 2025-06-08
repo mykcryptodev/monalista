@@ -1,9 +1,18 @@
 import { type FC } from "react";
 import { getContract } from "thirdweb";
-import { buyoutAuction, type EnglishAuction } from "thirdweb/extensions/marketplace";
-import { NFTProvider, NFTMedia, TransactionButton, useActiveAccount } from "thirdweb/react";
+import {
+  buyoutAuction,
+  type EnglishAuction,
+} from "thirdweb/extensions/marketplace";
+import {
+  NFTProvider,
+  NFTMedia,
+  TransactionButton,
+  useActiveAccount,
+} from "thirdweb/react";
 import { chain, client, marketplaceContract } from "~/constants";
 import { useRouter } from "next/navigation";
+import { Account } from "~/app/components/Account";
 
 type Props = {
   auction: EnglishAuction;
@@ -39,6 +48,10 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
             {auction.minimumBidCurrencyValue.displayValue}{" "}
             {auction.minimumBidCurrencyValue.symbol}
           </p>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="font-semibold">Seller:</span>
+            <Account address={auction.creatorAddress} />
+          </div>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton
