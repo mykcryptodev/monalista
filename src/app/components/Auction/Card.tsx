@@ -46,7 +46,7 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
           <h2 className="text-sm font-semibold truncate block w-full">
             {auction.asset.metadata.name}
           </h2>
-          <p className="text-xs w-full truncate flex items-center gap-1">
+          <div className="text-xs w-full truncate flex items-center gap-1">
             <TokenProvider
               address={auction.currencyContractAddress as `0x${string}`}
               client={client}
@@ -60,7 +60,7 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
               />
             </TokenProvider>
             {auction.minimumBidCurrencyValue.displayValue} {auction.minimumBidCurrencyValue.symbol}
-          </p>
+          </div>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton

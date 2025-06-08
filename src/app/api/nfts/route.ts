@@ -1,43 +1,194 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Insight } from "thirdweb";
-import { client, chain } from "~/constants";
+import { getCache, setCache } from "~/lib/cache";
 
-function convertBigInt(obj: unknown): unknown {
-  if (typeof obj === "bigint") {
-    return obj.toString();
+const ZAPPER_URL = "https://public.zapper.xyz/graphql";
+
+// Define types for the GraphQL response
+type NftNode = {
+  tokenId: string;
+  name?: string | null;
+  description?: string | null;
+  collection: {
+    name?: string | null;
+    address: string;
+    network?: string | null;
+  };
+  mediasV3?: {
+    images?: {
+      edges?: Array<{
+        node?: {
+          thumbnail?: string | null;
+        };
+      }>;
+    };
+  };
+};
+
+type NftEdge = {
+  node: NftNode;
+  balance?: string | number;
+};
+
+type NftUsersTokensResponse = {
+  data?: {
+    nftUsersTokens?: {
+      edges: NftEdge[];
+      pageInfo: {
+        hasNextPage: boolean;
+        endCursor?: string | null;
+      };
+    };
+  };
+  errors?: Array<{
+    message: string;
+    [key: string]: unknown;
+  }>;
+};
+
+const NFT_QUERY = `
+query UserNftTokens(
+  $owners: [Address!]!
+  $network: Network
+  $first: Int = 50
+  $after: String
+) {
+  nftUsersTokens(
+    owners: $owners
+    network: $network
+    first: $first
+    after: $after
+  ) {
+    edges {
+      node {
+        tokenId
+        name
+        description
+        
+        collection {
+          name
+          address
+          network
+        }
+        
+        mediasV3 {
+          images(first: 1) {
+            edges {
+              node {
+                thumbnail
+              }
+            }
+          }
+        }
+      }
+      
+      balance
+    }
+    
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
-  if (Array.isArray(obj)) {
-    return obj.map(convertBigInt);
-  }
-  if (obj && typeof obj === "object") {
-    return Object.fromEntries(
-      Object.entries(obj as Record<string, unknown>).map(([k, v]) => [k, convertBigInt(v)])
-    );
-  }
-  return obj;
-}
+}`;
 
 export async function GET(request: NextRequest) {
   const address = request.nextUrl.searchParams.get("address");
   const pageParam = request.nextUrl.searchParams.get("page");
   const page = pageParam ? parseInt(pageParam, 10) || 1 : 1;
+  
   if (!address) {
     return NextResponse.json({ error: "address query param is required" }, { status: 400 });
   }
+  
+  const cacheKey = `nfts:${address}:${page}`;
+  const cached = await getCache(cacheKey);
+  if (cached) {
+    return NextResponse.json(cached);
+  }
+  
   try {
     const pageSize = 50;
-    const nfts = await Insight.getOwnedNFTs({
-      client,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      chains: [{ ...(chain as any), rpc: (chain as any).rpc }],
-      ownerAddress: address,
-      includeMetadata: true,
-      queryOptions: { page, limit: pageSize },
+    // For pagination, we need to track cursor from previous pages
+    // For now, we'll use a simple offset approach
+    const variables = {
+      owners: [address],
+      first: pageSize,
+      // If we had cursor-based pagination, we'd use: after: cursor
+    };
+    
+    const resp = await fetch(ZAPPER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-zapper-api-key": process.env.ZAPPER_API_KEY as string,
+      },
+      body: JSON.stringify({ query: NFT_QUERY, variables }),
     });
-    const sanitized = convertBigInt(nfts);
-    return NextResponse.json({ nfts: sanitized, hasMore: nfts.length === pageSize });
+    
+    if (!resp.ok) {
+      const errorText = await resp.text();
+      console.error("Zapper API error:", resp.status, errorText);
+      
+      // Try to parse error response
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.errors) {
+          console.error("GraphQL errors:", errorData.errors);
+        }
+      } catch (e: unknown) {
+        const error = e as Error;
+        // Not JSON, log raw text
+        console.error("Zapper API error:", error);
+      }
+      
+      return NextResponse.json({ 
+        error: `Failed to fetch NFTs: ${resp.status} ${resp.statusText}`,
+        details: errorText 
+      }, { status: 500 });
+    }
+    
+    const json = await resp.json() as NftUsersTokensResponse;
+    
+    // Check for GraphQL errors
+    if (json.errors) {
+      console.error("GraphQL errors:", json.errors);
+      return NextResponse.json({ 
+        error: "GraphQL query failed",
+        details: json.errors 
+      }, { status: 500 });
+    }
+    
+    const edges = json.data?.nftUsersTokens?.edges || [];
+    const pageInfo = json.data?.nftUsersTokens?.pageInfo || { hasNextPage: false };
+    
+    const nfts = edges.map((edge: NftEdge) => {
+      const token = edge.node;
+      const imageEdge = token.mediasV3?.images?.edges?.[0];
+      const image = imageEdge?.node?.thumbnail || null;
+      
+      return {
+        id: token.tokenId,
+        tokenAddress: token.collection.address,
+        metadata: { 
+          name: token.name || token.tokenId,
+          image 
+        },
+        quantityOwned: edge.balance?.toString() || "1"
+      };
+    });
+    
+    const data = { 
+      nfts, 
+      hasMore: pageInfo.hasNextPage
+    };
+    
+    await setCache(cacheKey, data, { ex: 60 });
+    return NextResponse.json(data);
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "failed to fetch nfts" }, { status: 500 });
+    console.error("Unexpected error:", err);
+    return NextResponse.json({ 
+      error: "Failed to fetch NFTs",
+      details: err instanceof Error ? err.message : "Unknown error"
+    }, { status: 500 });
   }
 }

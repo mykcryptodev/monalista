@@ -6,8 +6,6 @@ import {
   ConnectButton,
   TransactionButton,
   useActiveAccount,
-  TokenProvider,
-  TokenIcon,
 } from "thirdweb/react";
 import { createAuction } from "thirdweb/extensions/marketplace";
 import {
@@ -15,20 +13,20 @@ import {
   client,
   marketplaceContract,
 } from "~/constants";
-import { getContract } from "thirdweb";
+import { getContract, NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS } from "thirdweb";
 import { isApprovedForAll as isApprovedForAll721 } from "thirdweb/extensions/erc721";
 import { isApprovedForAll as isApprovedForAll1155 } from "thirdweb/extensions/erc1155";
 import { setApprovalForAll as approve721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as approve1155 } from "thirdweb/extensions/erc1155";
 import { toast } from "react-toastify";
 import { NftDropdown, type OwnedNFT } from "~/app/components/NftDropdown";
-import TokenIconFallback from "~/app/components/TokenIconFallback";
+import { TokenDropdown, type OwnedToken } from "~/app/components/TokenDropdown";
 
 export default function CreateAuctionPage() {
   const account = useActiveAccount();
   const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
   const [quantity, setQuantity] = useState("");
-  const [currencyAddress, setCurrencyAddress] = useState("");
+  const [selectedToken, setSelectedToken] = useState<OwnedToken | null>(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [timeBuffer, setTimeBuffer] = useState("");
@@ -88,26 +86,9 @@ export default function CreateAuctionPage() {
         </div>
         <div>
           <label className="label py-0">
-            <span className="label-text">Currency Address</span>
+            <span className="label-text">Currency</span>
           </label>
-          <input
-            type="text"
-            value={currencyAddress}
-            onChange={(e) => setCurrencyAddress(e.target.value)}
-            className="input input-bordered input-sm w-full"
-          />
-          {currencyAddress && (
-            <div className="mt-2">
-              <TokenProvider address={currencyAddress as `0x${string}`} client={client} chain={chain}>
-                <TokenIcon
-                  className="w-6 h-6"
-                  iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${currencyAddress}`}
-                  loadingComponent={<TokenIconFallback />}
-                  fallbackComponent={<TokenIconFallback />}
-                />
-              </TokenProvider>
-            </div>
-          )}
+          <TokenDropdown onSelect={setSelectedToken} />
         </div>
         <div>
           <label className="label py-0">
@@ -230,8 +211,10 @@ export default function CreateAuctionPage() {
                   assetContractAddress: selectedNft!.tokenAddress as `0x${string}`,
                   tokenId: BigInt(selectedNft!.id),
                   quantity: quantity ? BigInt(quantity) : undefined,
-                  currencyContractAddress: currencyAddress
-                    ? (currencyAddress as `0x${string}`)
+                  currencyContractAddress: selectedToken 
+                    ? selectedToken.tokenAddress === ZERO_ADDRESS
+                      ? NATIVE_TOKEN_ADDRESS
+                      : (selectedToken.tokenAddress as `0x${string}`)
                     : undefined,
                   startTimestamp: startTime ? new Date(startTime) : undefined,
                   endTimestamp: endTime ? new Date(endTime) : undefined,

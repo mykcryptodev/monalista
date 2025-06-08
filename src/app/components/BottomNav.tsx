@@ -72,15 +72,15 @@ export function BottomNav() {
 
   return (
     <nav className="btm-nav bg-base-200/80 backdrop-blur-sm p-2 fixed bottom-0 inset-x-0 w-full mx-auto max-w-sm flex justify-around text-xs">
-      <Link href="/" className={isActive("/") ? "active" : "flex flex-col items-center"}>
+      <Link href="/" className={`flex flex-col items-center ${isActive("/") ? "active" : ""}`}>
         <ShoppingBagIcon />
         <span className="btm-nav-label">Shop</span>
       </Link>
-      <Link href="/nfts" className={isActive("/nfts") ? "active" : "flex flex-col items-center"}>
+      <Link href="/nfts" className={`flex flex-col items-center ${isActive("/nfts") ? "active" : ""}`}>
         <SquaresIcon />
         <span className="btm-nav-label">My NFTs</span>
       </Link>
-      <Link href="/notifications" className={isActive("/notifications") ? "active" : "flex flex-col items-center"}>
+      <Link href="/notifications" className={`flex flex-col items-center ${isActive("/notifications") ? "active" : ""}`}>
         <BellIcon />
         <span className="btm-nav-label">Notifications</span>
       </Link>

@@ -13,6 +13,8 @@ First, clone this repo to your local machine. In most cases, you'll want to fork
 
 You've cloned your app, now set your environment variables by copying the `.env.example` file and setting a client ID and secret key. Don't set the app url just yet, we'll do that in a minute. For now, head over to the [thirdweb dashboard](https://thirdweb.com/login) to get your client ID and secret key.
 
+You'll also need a `ZAPPER_API_KEY` to fetch token balances. You can create one for free from the [Zapper dashboard](https://pro.zapper.xyz/).
+
 > [!IMPORTANT]
 > Never expose your secret key! Your client ID isn't meant to be private, but your secret key should never be shared or exposed on the frontend! Your client ID can be restricted to your domains, you should definitely do that. Simply add localhost:3000 and you ngrok url to the allowlisted domains in the thirdweb dashboard.
 
