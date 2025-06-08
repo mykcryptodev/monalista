@@ -194,30 +194,31 @@ export default function AuctionPage() {
                   <Account address={auction.creatorAddress} />
                 </div>
                 {auction.winningBid && (
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-start">
                     <span className="font-semibold">Winning Bid:</span>
-                    <span className="flex items-center gap-1">
+                    <div className="flex flex-col items-end gap-1">
                       <Account
                         address={auction.winningBid.bidderAddress}
                         avatarClassName="w-4 h-4"
                         className="max-w-[100px]"
                       />
-                      <TokenProvider
-                        address={auction.currencyContractAddress as `0x${string}`}
-                        client={client}
-                        chain={chain}
-                      >
-                        <TokenIcon
-                          className="w-4 h-4"
-                          iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`}
-                          loadingComponent={<TokenIconFallback />}
-                          fallbackComponent={<TokenIconFallback />}
-                        />
-                      </TokenProvider>
-                      {auction.winningBid.currencyValue.displayValue}
-                      {" "}
-                      {auction.winningBid.currencyValue.symbol}
-                    </span>
+                      <span className="flex items-center gap-1">
+                        <TokenProvider
+                          address={auction.currencyContractAddress as `0x${string}`}
+                          client={client}
+                          chain={chain}
+                        >
+                          <TokenIcon
+                            className="w-4 h-4"
+                            iconResolver={`/api/token-image?chainName=${chain.name}&tokenAddress=${auction.currencyContractAddress}`}
+                            loadingComponent={<TokenIconFallback />}
+                            fallbackComponent={<TokenIconFallback />}
+                          />
+                        </TokenProvider>
+                        {auction.winningBid.currencyValue.displayValue}{" "}
+                        {auction.winningBid.currencyValue.symbol}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
