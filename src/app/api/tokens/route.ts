@@ -56,7 +56,15 @@ export async function GET(request: NextRequest) {
     };
     const edges: ZapperTokenEdge[] =
       json.data?.portfolioV2?.tokenBalances?.byToken?.edges || [];
-    const tokens = edges.map((e) => e.node);
+    const tokens = edges.map((e) => {
+      return {
+        tokenAddress: e.node.tokenAddress,
+        symbol: e.node.symbol,
+        name: e.node.name,
+        imgUrlV2: e.node.imgUrlV2,
+        balance: e.node.balance,
+      };
+    });
 
     try {
       const rpcUrl = chain.rpc;
