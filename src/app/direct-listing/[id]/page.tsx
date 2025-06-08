@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getContract } from "thirdweb";
-import { getListing, type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
+import { type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
 import { 
   NFTProvider,
   NFTMedia,
@@ -33,10 +33,9 @@ export default function DirectListingPage() {
     const fetchListing = async () => {
       try {
         setLoading(true);
-        const listingData = await getListing({
-          contract: marketplaceContract,
-          listingId: BigInt(listingId),
-        });
+        const res = await fetch(`/api/listings/${listingId}`);
+        if (!res.ok) throw new Error();
+        const listingData: DirectListing = await res.json();
         setListing(listingData);
       } catch (err) {
         setError("Failed to load listing");
@@ -144,12 +143,14 @@ export default function DirectListingPage() {
                   <ConnectButton client={client} />
                 ) : (
                   <TransactionButton
-                    transaction={() => buyFromListing({
-                      contract: marketplaceContract,
-                      listingId: listing.id,
-                      quantity: BigInt(1),
-                      recipient: account.address,
-                    })}
+                    transaction={() =>
+                      buyFromListing({
+                        contract: marketplaceContract,
+                        listingId: BigInt(listing.id),
+                        quantity: BigInt(1),
+                        recipient: account.address,
+                      })
+                    }
                     className="!btn !btn-primary !btn-sm"
                     onTransactionSent={() => {
                       toast.loading("Buying listing...");
@@ -157,6 +158,10 @@ export default function DirectListingPage() {
                     onTransactionConfirmed={() => {
                       toast.dismiss();
                       toast.success("Listing bought!");
+                      fetch("/api/cache/invalidate", {
+                        method: "POST",
+                        body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
+                      });
                     }}
                     onError={(error: Error) => {
                       toast.dismiss();
@@ -168,10 +173,12 @@ export default function DirectListingPage() {
                 )}
                 {account?.address?.toLowerCase() === listing.creatorAddress.toLowerCase() && (
                   <TransactionButton
-                    transaction={() => cancelListing({
-                      contract: marketplaceContract,
-                      listingId: listing.id,
-                    })}
+                    transaction={() =>
+                      cancelListing({
+                        contract: marketplaceContract,
+                        listingId: BigInt(listing.id),
+                      })
+                    }
                     className="!btn !btn-error !btn-sm"
                     onTransactionSent={() => {
                       toast.loading("Cancelling listing...");
@@ -179,6 +186,10 @@ export default function DirectListingPage() {
                     onTransactionConfirmed={() => {
                       toast.dismiss();
                       toast.success("Listing cancelled");
+                      fetch("/api/cache/invalidate", {
+                        method: "POST",
+                        body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
+                      });
                     }}
                     onError={(error: Error) => {
                       toast.dismiss();

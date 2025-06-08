@@ -4,7 +4,6 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getContract } from "thirdweb";
 import {
-  getAuction,
   type EnglishAuction,
   buyoutAuction,
   bidInAuction,
@@ -39,10 +38,9 @@ export default function AuctionPage() {
     const fetchAuction = async () => {
       try {
         setLoading(true);
-        const auctionData = await getAuction({
-          contract: marketplaceContract,
-          auctionId: BigInt(auctionId),
-        });
+        const res = await fetch(`/api/auctions/${auctionId}`);
+        if (!res.ok) throw new Error();
+        const auctionData: EnglishAuction = await res.json();
         setAuction(auctionData);
       } catch (err) {
         setError("Failed to load auction");
@@ -172,8 +170,8 @@ export default function AuctionPage() {
                         transaction={() =>
                           bidInAuction({
                             contract: marketplaceContract,
-                            auctionId: auction.id,
-                            bidAmountWei: auction.minimumBidAmount,
+                            auctionId: BigInt(auction.id),
+                            bidAmountWei: BigInt(auction.minimumBidAmount),
                           })
                         }
                       className="!btn !btn-primary !btn-sm"
@@ -183,6 +181,10 @@ export default function AuctionPage() {
                       onTransactionConfirmed={() => {
                         toast.dismiss();
                         toast.success("Bid placed!");
+                        fetch("/api/cache/invalidate", {
+                          method: "POST",
+                          body: JSON.stringify({ keys: [`auction:${auction.id}`] }),
+                        });
                       }}
                       onError={(error: Error) => {
                         toast.dismiss();
@@ -195,7 +197,7 @@ export default function AuctionPage() {
                       transaction={() =>
                         buyoutAuction({
                           contract: marketplaceContract,
-                          auctionId: auction.id,
+                          auctionId: BigInt(auction.id),
                         })
                       }
                       className="!btn !btn-secondary !btn-sm"
@@ -205,6 +207,10 @@ export default function AuctionPage() {
                       onTransactionConfirmed={() => {
                         toast.dismiss();
                         toast.success("Auction bought out!");
+                        fetch("/api/cache/invalidate", {
+                          method: "POST",
+                          body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
+                        });
                       }}
                       onError={(error: Error) => {
                         toast.dismiss();
@@ -220,7 +226,7 @@ export default function AuctionPage() {
                     transaction={() =>
                       cancelAuction({
                         contract: marketplaceContract,
-                        auctionId: auction.id,
+                        auctionId: BigInt(auction.id),
                       })
                     }
                     className="!btn !btn-error !btn-sm"
@@ -230,6 +236,10 @@ export default function AuctionPage() {
                     onTransactionConfirmed={() => {
                       toast.dismiss();
                       toast.success("Auction cancelled");
+                      fetch("/api/cache/invalidate", {
+                        method: "POST",
+                        body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
+                      });
                     }}
                     onError={(error: Error) => {
                       toast.dismiss();
