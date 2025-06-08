@@ -24,20 +24,20 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
 
   return (
     <NFTProvider contract={contract} tokenId={BigInt(listing.asset.id)}>
-      <div 
+      <div
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
+        <div className="p-2 flex items-center gap-1 justify-start text-xs">
+          <span className="font-semibold">Seller:</span>
+          <Account address={listing.creatorAddress} avatarClassName="w-4 h-4" />
+        </div>
         <figure>
           <NFTMedia />
         </figure>
         <div className="card-body p-2 gap-0">
           <h2 className="text-sm font-semibold truncate block w-full">{listing.asset.metadata.name}</h2>
           <p className="text-xs w-full truncate">{listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}</p>
-          <div className="flex items-center gap-1 text-xs">
-            <span className="font-semibold">Seller:</span>
-            <Account address={listing.creatorAddress} />
-          </div>
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton
