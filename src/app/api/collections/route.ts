@@ -4,14 +4,14 @@ import { getCache, setCache } from "~/lib/cache";
 const ZAPPER_URL = "https://public.zapper.xyz/graphql";
 
 const COLLECTION_QUERY = `
-query CollectionMetadata($addresses: [Address!]!) {
-  nftCollections(addresses: $addresses) {
+query CollectionMetadata($collections: [NftCollectionInput!]!) {
+  nftCollections(collections: $collections) {
     address
     name
     description
-    logoUrl
+    imageUrl
     stats {
-      floorPrice
+      floorPriceNative
     }
   }
 }`;
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const variables = { addresses: [address] };
+    const variables = { collections: [{ address }] };
     const resp = await fetch(ZAPPER_URL, {
       method: "POST",
       headers: {

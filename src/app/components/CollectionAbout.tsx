@@ -8,8 +8,8 @@ type Props = {
 type CollectionData = {
   name?: string;
   description?: string;
-  logoUrl?: string;
-  stats?: { floorPrice?: number };
+  imageUrl?: string;
+  stats?: { floorPriceNative?: number };
 };
 
 export const CollectionAbout = ({ address }: Props) => {
@@ -36,8 +36,8 @@ export const CollectionAbout = ({ address }: Props) => {
     <section className="mt-4 text-sm">
       <h3 className="font-bold text-lg mb-2">About {data.name}</h3>
       {data.description && <p className="mb-2">{data.description}</p>}
-      {data.stats?.floorPrice !== undefined && (
-        <p className="opacity-70">Floor Price: {data.stats.floorPrice}</p>
+      {data.stats?.floorPriceNative !== undefined && (
+        <p className="opacity-70">Floor Price: {data.stats.floorPriceNative}</p>
       )}
     </section>
   );
