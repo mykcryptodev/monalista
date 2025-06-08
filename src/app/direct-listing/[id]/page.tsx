@@ -2,13 +2,14 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getContract } from "thirdweb";
+import { getContract, NATIVE_TOKEN_ADDRESS } from "thirdweb";
 import { type DirectListing, buyFromListing, cancelListing } from "thirdweb/extensions/marketplace";
 import { 
   NFTProvider,
   NFTMedia,
   NFTName,
   NFTDescription,
+  PayEmbed,
   TransactionButton,
   useActiveAccount,
   ConnectButton,
@@ -21,6 +22,7 @@ import { Account } from "~/app/components/Account";
 import Countdown from "~/app/components/Countdown";
 import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
+import { getWalletBalance } from "thirdweb/wallets";
 import { CollectionAbout } from "~/app/components/CollectionAbout";
 
 export default function DirectListingPage() {
@@ -37,6 +39,11 @@ export default function DirectListingPage() {
     | null
   >(null);
   const account = useActiveAccount();
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [showPay, setShowPay] = useState(false);
+  const [userBalance, setUserBalance] = useState<bigint>(0n);
+  const isNativeToken = (address: string) =>
+    address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase();
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -58,6 +65,27 @@ export default function DirectListingPage() {
       fetchListing();
     }
   }, [listingId]);
+
+  useEffect(() => {
+    const checkBalance = async () => {
+      if (!account || !listing) return;
+      try {
+        const balance = await getWalletBalance({
+          address: account.address,
+          client,
+          chain,
+          tokenAddress: isNativeToken(listing.currencyContractAddress) 
+            ? undefined 
+            : listing.currencyContractAddress,
+        });
+        setUserBalance(balance.value);
+      } catch (err) {
+        console.error("Error checking balance:", err);
+        setUserBalance(0n);
+      }
+    };
+    checkBalance();
+  }, [account, listing]);
 
   useEffect(() => {
     const fetchNftInfo = async () => {
@@ -107,6 +135,27 @@ export default function DirectListingPage() {
     chain,
     client,
     address: listing.asset.tokenAddress as `0x${string}`,
+  });
+
+  const hasSufficientBalance = userBalance >= BigInt(listing?.currencyValuePerToken?.value || 0);
+
+  // Common success handler
+  const handlePurchaseSuccess = () => {
+    toast.success("Listing bought!");
+    fetch("/api/cache/invalidate", {
+      method: "POST",
+      body: JSON.stringify({ keys: ["listings", `listing:${listing!.id}`] }),
+    });
+    setShowBuyModal(false);
+    setShowPay(false);
+  };
+
+  // Transaction generator
+  const getBuyTransaction = () => buyFromListing({
+    contract: marketplaceContract,
+    listingId: BigInt(listing!.id),
+    quantity: BigInt(1),
+    recipient: account!.address,
   });
 
   return (
@@ -185,34 +234,11 @@ export default function DirectListingPage() {
                 {!account ? (
                   <ConnectButton client={client} />
                 ) : (
-                  <TransactionButton
-                    transaction={() =>
-                      buyFromListing({
-                        contract: marketplaceContract,
-                        listingId: BigInt(listing.id),
-                        quantity: BigInt(1),
-                        recipient: account.address,
-                      })
-                    }
-                    className="!btn !btn-primary !btn-sm"
-                    onTransactionSent={() => {
-                      toast.loading("Buying listing...");
-                    }}
-                    onTransactionConfirmed={() => {
-                      toast.dismiss();
-                      toast.success("Listing bought!");
-                      fetch("/api/cache/invalidate", {
-                        method: "POST",
-                        body: JSON.stringify({ keys: ["listings", `listing:${listing.id}`] }),
-                      });
-                    }}
-                    onError={(error: Error) => {
-                      toast.dismiss();
-                      toast.error(error.message);
-                    }}
-                  >
-                    Buy Now
-                  </TransactionButton>
+                  <>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowBuyModal(true)}>
+                      Buy Now
+                    </button>
+                  </>
                 )}
                 {account?.address?.toLowerCase() === listing.creatorAddress.toLowerCase() && (
                   <TransactionButton
@@ -244,7 +270,102 @@ export default function DirectListingPage() {
             </div>
           </div>
         </NFTProvider>
+
         <CollectionAbout address={listing.asset.tokenAddress} />
+
+        {/* Buy Modal */}
+        {showBuyModal && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Purchase Listing</h3>
+              <p className="py-4">
+                Price: {listing.currencyValuePerToken.displayValue} {listing.currencyValuePerToken.symbol}
+              </p>
+              <div className="modal-action">
+                <button className="btn btn-sm" onClick={() => setShowBuyModal(false)}>
+                  Cancel
+                </button>
+                {hasSufficientBalance ? (
+                  <TransactionButton
+                    transaction={getBuyTransaction}
+                    className="!btn !btn-primary !btn-sm"
+                    onTransactionSent={() => {
+                      toast.loading("Buying listing...");
+                    }}
+                    onTransactionConfirmed={() => {
+                      toast.dismiss();
+                      handlePurchaseSuccess();
+                    }}
+                    onError={(error: Error) => {
+                      toast.dismiss();
+                      toast.error(error.message);
+                    }}
+                  >
+                    Buy Now
+                  </TransactionButton>
+                ) : (
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => {
+                      setShowPay(true);
+                      setShowBuyModal(false);
+                    }}
+                  >
+                    Pay with any crypto
+                  </button>
+                )}
+              </div>
+            </div>
+            <form method="dialog" className="modal-backdrop">
+              <button onClick={() => setShowBuyModal(false)}>close</button>
+            </form>
+          </dialog>
+        )}
+
+        {/* PayEmbed */}
+        {showPay && (
+          <div 
+            className="fixed inset-0 z-50 grid place-items-center bg-black/50"
+            onClick={() => setShowPay(false)}
+          >
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="btn btn-xs btn-circle absolute right-2 top-2 z-10"
+                onClick={() => {
+                  setShowPay(false);
+                }}
+              >
+                ✕
+              </button>
+              <PayEmbed
+                client={client}
+                payOptions={{
+                  mode: "transaction",
+                  transaction: getBuyTransaction(),
+                  metadata: listing.asset.metadata,
+                  buyWithCrypto: {
+                    prefillSource: {
+                      chain: chain,
+                      token: isNativeToken(listing.currencyContractAddress)
+                        ? undefined
+                        : {
+                            address: listing.currencyContractAddress,
+                            name: listing.currencyValuePerToken.name,
+                            symbol: listing.currencyValuePerToken.symbol,
+                            icon: `/api/token-image?chainName=${chain.name}&tokenAddress=${listing.currencyContractAddress}`,
+                          },
+                      allowEdits: {
+                        chain: false,
+                        token: false,
+                      },
+                    },
+                  },
+                  onPurchaseSuccess: handlePurchaseSuccess,
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
