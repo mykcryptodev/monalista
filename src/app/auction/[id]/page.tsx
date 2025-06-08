@@ -148,7 +148,7 @@ export default function AuctionPage() {
                           bidInAuction({
                             contract: marketplaceContract,
                             auctionId: auction.id,
-                            bidAmountWei: auction.minimumBidAmount,
+                            bidAmountWei: auction.minimumBidAmount.toString(),
                           })
                         }
                       className="!btn !btn-primary !btn-sm"
