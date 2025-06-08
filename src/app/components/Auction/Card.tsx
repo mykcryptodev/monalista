@@ -29,8 +29,11 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
-        <figure>
+        <figure className="relative">
           <NFTMedia />
+          <div className="absolute top-1 right-1">
+            <Countdown endTimeInSeconds={auction.endTimeInSeconds} />
+          </div>
         </figure>
         <div className="card-body p-2 gap-1">
           <h2 className="text-sm font-semibold truncate block w-full">
@@ -40,7 +43,6 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
             {auction.minimumBidCurrencyValue.displayValue}{" "}
             {auction.minimumBidCurrencyValue.symbol}
           </p>
-          <Countdown endTimeInSeconds={auction.endTimeInSeconds} />
           {account?.address && (
             <div className="card-actions justify-end" onClick={(e) => e.stopPropagation()}>
               <TransactionButton

@@ -38,33 +38,43 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
     return <span className="text-error text-xs">Expired</span>;
   }
 
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
   return (
-    <div className="grid grid-flow-col gap-1 text-center auto-cols-max">
-      <div className="flex flex-col">
-        <span className="countdown font-mono text-xs">
-          <span style={{ '--value': time.days } as React.CSSProperties} />
-        </span>
-        <span className="text-[10px]">d</span>
-      </div>
-      <div className="flex flex-col">
-        <span className="countdown font-mono text-xs">
-          <span style={{ '--value': time.hours } as React.CSSProperties} />
-        </span>
-        <span className="text-[10px]">h</span>
-      </div>
-      <div className="flex flex-col">
-        <span className="countdown font-mono text-xs">
-          <span style={{ '--value': time.minutes } as React.CSSProperties} />
-        </span>
-        <span className="text-[10px]">m</span>
-      </div>
-      <div className="flex flex-col">
-        <span className="countdown font-mono text-xs">
-          <span style={{ '--value': time.seconds } as React.CSSProperties} />
-        </span>
-        <span className="text-[10px]">s</span>
-      </div>
-    </div>
+    <span className="countdown font-mono text-xs">
+      <span
+        style={{ "--value": time.days } as React.CSSProperties}
+        aria-live="polite"
+        aria-label={`${time.days} days`}
+      >
+        {pad(time.days)}
+      </span>
+      d&nbsp;
+      <span
+        style={{ "--value": time.hours } as React.CSSProperties}
+        aria-live="polite"
+        aria-label={`${time.hours} hours`}
+      >
+        {pad(time.hours)}
+      </span>
+      h&nbsp;
+      <span
+        style={{ "--value": time.minutes } as React.CSSProperties}
+        aria-live="polite"
+        aria-label={`${time.minutes} minutes`}
+      >
+        {pad(time.minutes)}
+      </span>
+      m&nbsp;
+      <span
+        style={{ "--value": time.seconds } as React.CSSProperties}
+        aria-live="polite"
+        aria-label={`${time.seconds} seconds`}
+      >
+        {pad(time.seconds)}
+      </span>
+      s
+    </span>
   );
 };
 
