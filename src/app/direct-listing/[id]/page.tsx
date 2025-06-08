@@ -29,6 +29,13 @@ export default function DirectListingPage() {
   const [listing, setListing] = useState<DirectListing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nftInfo, setNftInfo] = useState<
+    | {
+        rarityRank?: number | null;
+        traits: { attributeName: string; attributeValue: string }[];
+      }
+    | null
+  >(null);
   const account = useActiveAccount();
 
   useEffect(() => {
@@ -51,6 +58,23 @@ export default function DirectListingPage() {
       fetchListing();
     }
   }, [listingId]);
+
+  useEffect(() => {
+    const fetchNftInfo = async () => {
+      if (!listing) return;
+      try {
+        const res = await fetch(
+          `/api/nft?collectionAddress=${listing.asset.tokenAddress}&tokenId=${listing.asset.id}&chainId=${chain.id}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setNftInfo(data);
+      } catch (err) {
+        console.error('Failed to fetch NFT info', err);
+      }
+    };
+    fetchNftInfo();
+  }, [listing]);
 
   if (loading) {
     return (
@@ -104,6 +128,19 @@ export default function DirectListingPage() {
               <div className="text-sm opacity-70">
                 <NFTDescription />
               </div>
+              {nftInfo?.rarityRank && (
+                <p className="text-xs mt-2">Rarity Rank: {nftInfo.rarityRank}</p>
+              )}
+              {nftInfo?.traits?.length ? (
+                <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                  {nftInfo.traits.map((t, i) => (
+                    <div key={i} className="border rounded p-2">
+                      <div className="font-semibold">{t.attributeName}</div>
+                      <div>{t.attributeValue}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               
               <div className="divider"></div>
               
