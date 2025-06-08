@@ -37,8 +37,12 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="p-2 flex items-center gap-1 justify-start text-xs">
-          <Account address={auction.creatorAddress} avatarClassName="w-4 h-4" />
+        <div className="p-2 flex items-center text-xs">
+          <Account
+            address={auction.creatorAddress}
+            avatarClassName="w-4 h-4"
+            className="w-1/2 overflow-hidden"
+          />
         </div>
         <figure>
           <NFTMedia />
@@ -71,3 +75,4 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
     </NFTProvider>
   );
 };
+

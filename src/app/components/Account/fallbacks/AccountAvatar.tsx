@@ -8,6 +8,6 @@ export const AccountAvatarFallback: FC<{ className?: string }> = ({ className = 
       </span>
     </div>
   );
-}
+};
 
 export default AccountAvatarFallback;

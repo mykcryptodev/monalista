@@ -10,12 +10,20 @@ type Props = {
    * Optional class applied to the avatar component. Defaults to `w-6 h-6`.
    */
   avatarClassName?: string;
+  /**
+   * Optional class applied to the component wrapper.
+   */
+  className?: string;
 };
 
-export const Account: FC<Props> = ({ address, avatarClassName = "w-6 h-6" }) => {
+export const Account: FC<Props> = ({
+  address,
+  avatarClassName = "w-6 h-6",
+  className,
+}) => {
   return (
     <AccountProvider address={address} client={client}>
-      <div className="flex items-center gap-2">
+      <div className={`flex items-center gap-2 ${className ?? ""}`.trim()}>
         <AccountAvatar
           fallbackComponent={<AccountAvatarFallback className={avatarClassName} />}
           loadingComponent={<AccountAvatarFallback className={avatarClassName} />}
@@ -28,5 +36,6 @@ export const Account: FC<Props> = ({ address, avatarClassName = "w-6 h-6" }) => 
         />
       </div>
     </AccountProvider>
-  )
+  );
 };
+
