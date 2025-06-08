@@ -2,6 +2,7 @@ import { FC, useEffect, useState, useCallback } from "react";
 
 interface Props {
   endTimeInSeconds: bigint | number;
+  unitsToDisplay?: number;
 }
 
 type TimeLeft = {
@@ -14,7 +15,7 @@ type TimeLeft = {
   seconds: number;
 };
 
-export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
+export const Countdown: FC<Props> = ({ endTimeInSeconds, unitsToDisplay = 3 }) => {
   const end = Number(endTimeInSeconds) * 1000;
 
   const calculate = useCallback((): TimeLeft => {
@@ -88,7 +89,7 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
   // Determine which 3 units to show
   const timeUnits = [
     { value: years, label: 'y', name: 'years' },
-    { value: months, label: 'm', name: 'months' },
+    { value: months, label: 'mo', name: 'months' },
     { value: days, label: 'd', name: 'days' },
     { value: hours, label: 'h', name: 'hours' },
     { value: minutes, label: 'm', name: 'minutes' },
@@ -101,22 +102,23 @@ export const Countdown: FC<Props> = ({ endTimeInSeconds }) => {
   // Determine which units to show
   let unitsToShow;
   if (nonZeroUnits.length === 0 || total <= 0) {
-    // If countdown is at 0 or expired, show "00h 00m 00s"
-    unitsToShow = timeUnits.slice(3, 6);
-  } else if (nonZeroUnits.length >= 3) {
-    // If we have 3 or more non-zero units, take the first 3
-    unitsToShow = nonZeroUnits.slice(0, 3);
+    // If countdown is at 0 or expired, show the last units (e.g., "00h 00m 00s" for 3 units)
+    const startIndex = Math.max(0, timeUnits.length - unitsToDisplay);
+    unitsToShow = timeUnits.slice(startIndex);
+  } else if (nonZeroUnits.length >= unitsToDisplay) {
+    // If we have enough non-zero units, take the requested amount
+    unitsToShow = nonZeroUnits.slice(0, unitsToDisplay);
   } else {
-    // If we have fewer than 3 non-zero units, show all of them
+    // If we have fewer non-zero units than requested, show all of them
     unitsToShow = nonZeroUnits;
   }
 
   return (
     <span className="font-mono text-xs">
       {unitsToShow.map((unit, index) => (
-        <span key={unit.name}>
+        <span key={unit.name} className="gap-0.5">
           {pad(unit.value)}{unit.label}
-          {index < unitsToShow.length - 1 && ' '}
+          {index < unitsToShow.length - 1}
         </span>
       ))}
     </span>

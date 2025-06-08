@@ -30,13 +30,13 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="p-2 flex items-center text-xs">
+        <div className="p-2 flex items-center text-xs w-full justify-between">
           <Account
             address={auction.creatorAddress}
             avatarClassName="w-4 h-4"
             className="w-1/2 overflow-hidden"
           />
-          <Countdown endTimeInSeconds={auction.endTimeInSeconds} />
+          <Countdown endTimeInSeconds={auction.endTimeInSeconds} unitsToDisplay={2} />
         </div>
         <figure>
           <NFTMedia className="nftmedia-hide-overlay" />

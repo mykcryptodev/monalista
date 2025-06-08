@@ -29,13 +29,13 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
         className="card bg-base-200 px-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="p-2 flex items-center text-xs">
+        <div className="p-2 flex items-center text-xs w-full justify-between">
           <Account
             address={listing.creatorAddress}
             avatarClassName="w-4 h-4"
             className="w-1/2 overflow-hidden"
           />
-          <Countdown endTimeInSeconds={listing.endTimeInSeconds} />
+          <Countdown endTimeInSeconds={listing.endTimeInSeconds} unitsToDisplay={2} />
         </div>
         <figure>
           <NFTMedia className="nftmedia-hide-overlay" />
