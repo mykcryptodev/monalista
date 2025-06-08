@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     const tokens = edges.map((e) => e.node);
 
     try {
-      const rpcUrl = chain.rpcUrls?.default?.http?.[0];
+      const rpcUrl = chain.rpc;
       if (rpcUrl) {
         const nativeResp = await fetch(rpcUrl, {
           method: "POST",
