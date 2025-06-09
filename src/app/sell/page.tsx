@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -29,7 +29,7 @@ function toLocal(date: Date) {
   return local.toISOString().slice(0, 16);
 }
 
-export default function SellPage() {
+function SellPageContent() {
   const account = useActiveAccount();
   const [saleType, setSaleType] = useState<"listing" | "auction">("listing");
   const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
@@ -335,5 +335,13 @@ export default function SellPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SellPage() {
+  return (
+    <Suspense fallback={null}>
+      <SellPageContent />
+    </Suspense>
   );
 }
