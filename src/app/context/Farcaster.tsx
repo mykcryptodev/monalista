@@ -18,20 +18,20 @@ export function FarcasterProvider({ children }: { children: React.ReactNode }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
   const [isMiniApp, setIsMiniApp] = useState(false);
-	const { connect } = useConnect();
+  const { connect } = useConnect();
 
   const connectWallet = useCallback(async () => {
-		connect(async () => {
-			// create a wallet instance from the Warpcast provider
-			const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
+    connect(async () => {
+      // create a wallet instance from the Warpcast provider
+      const wallet = EIP1193.fromProvider({ provider: sdk.wallet.ethProvider });
 
-			// trigger the connection
-			await wallet.connect({ client, chain });
+      // trigger the connection
+      await wallet.connect({ client, chain });
 
-			// return the wallet to the app context
-			return wallet;
-		});
-	}, [connect]);
+      // return the wallet to the app context
+      return wallet;
+    });
+  }, [connect]);
 
   const viewProfile = useCallback(async (fid: number) => {
     try {
@@ -57,10 +57,10 @@ export function FarcasterProvider({ children }: { children: React.ReactNode }) {
 
   // Separate effect for wallet connection after context is loaded
   useEffect(() => {
-                if (context && sdk.wallet && isSDKLoaded) {
-                        connectWallet();
-                }
-        }, [context, isSDKLoaded, connectWallet]);
+    if (context && sdk.wallet && isSDKLoaded) {
+      connectWallet();
+    }
+  }, [context, isSDKLoaded, connectWallet]);
 
   const value = useMemo(() => ({
     context,
