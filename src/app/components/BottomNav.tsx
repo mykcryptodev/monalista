@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useContext } from "react";
+import { FarcasterContext } from "~/app/context/Farcaster";
 
 function ShoppingBagIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -66,6 +68,27 @@ function BellIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
+function BellSlashIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      aria-hidden="true"
+      className="w-4 h-4"
+      {...props}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.143 17.082a24.248 24.248 0 003.844.148m-3.844-.148a23.856 23.856 0 01-5.455-1.31 8.964 8.964 0 002.3-5.542m3.155 6.852a3 3 0 005.667 1.97m1.965-2.277L21 21m-4.225-4.225a23.81 23.81 0 003.536-1.003A8.967 8.967 0 0118 9.75V9A6 6 0 006.53 6.53m10.245 10.245L6.53 6.53M3 3l3.53 3.53"
+      />
+    </svg>
+  );
+}
+       
 function SwatchIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
@@ -90,9 +113,14 @@ function SwatchIcon(props: React.SVGProps<SVGSVGElement>) {
 export function BottomNav() {
   const pathname = usePathname();
   const isActive = (href: string) => pathname === href;
+  const farcaster = useContext(FarcasterContext);
+  const added = farcaster?.context?.client.added;
+  const notificationsEnabled = Boolean(
+    farcaster?.context?.client.notificationDetails
+  );
 
   return (
-    <nav className="btm-nav bg-base-200/80 backdrop-blur-sm p-2 fixed bottom-0 inset-x-0 w-full mx-auto max-w-sm flex justify-around text-xs">
+    <nav className="btm-nav bg-base-200/80 backdrop-blur-sm py-4 px-2 fixed bottom-0 inset-x-0 w-full mx-auto max-w-sm flex justify-around text-xs">
       <Link href="/" className={`flex flex-col items-center ${isActive("/") ? "active" : ""}`}>
         <ShoppingBagIcon />
         <span className="btm-nav-label">Shop</span>
@@ -106,7 +134,7 @@ export function BottomNav() {
         <span className="btm-nav-label">Theme</span>
       </Link>
       <Link href="/notifications" className={`flex flex-col items-center ${isActive("/notifications") ? "active" : ""}`}>
-        <BellIcon />
+        {added && notificationsEnabled ? <BellIcon /> : <BellSlashIcon />}
         <span className="btm-nav-label">Notifications</span>
       </Link>
     </nav>

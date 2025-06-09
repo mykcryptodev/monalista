@@ -8,7 +8,6 @@ import {
   NFTProvider,
   NFTMedia,
   NFTName,
-  NFTDescription,
   PayEmbed,
   TransactionButton,
   useActiveAccount,
@@ -24,6 +23,7 @@ import { toast } from "react-toastify";
 import TokenIconFallback from "~/app/components/TokenIconFallback";
 import { getWalletBalance } from "thirdweb/wallets";
 import { CollectionAbout } from "~/app/components/CollectionAbout";
+import DescriptionWithReadMore from "~/app/components/DescriptionWithReadMore";
 
 export default function DirectListingPage() {
   const params = useParams();
@@ -174,9 +174,7 @@ export default function DirectListingPage() {
               <h2 className="card-title">
                 <NFTName />
               </h2>
-              <div className="text-sm opacity-70">
-                <NFTDescription />
-              </div>
+              <DescriptionWithReadMore description={listing.asset.metadata.description || ""} />
               {nftInfo?.rarityRank && (
                 <p className="text-xs mt-2">Rarity Rank: {nftInfo.rarityRank}</p>
               )}
@@ -184,8 +182,10 @@ export default function DirectListingPage() {
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                   {nftInfo.traits.map((t, i) => (
                     <div key={i} className="border rounded p-2">
-                      <div className="font-semibold">{t.attributeName}</div>
-                      <div>{t.attributeValue}</div>
+                      <div className="font-semibold truncate">
+                        {t.attributeName}
+                      </div>
+                      <div className="truncate">{t.attributeValue}</div>
                     </div>
                   ))}
                 </div>

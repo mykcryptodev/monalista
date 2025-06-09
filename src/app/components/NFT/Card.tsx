@@ -1,6 +1,7 @@
 "use client";
 
 import { FC } from "react";
+import Link from "next/link";
 import { OwnedNFT } from "../NftDropdown";
 
 interface Props {
@@ -26,6 +27,12 @@ export const NFTCard: FC<Props> = ({ nft }) => {
         {nft.quantityOwned && (
           <p className="text-xs opacity-70">Qty: {nft.quantityOwned}</p>
         )}
+        <Link
+          href={`/sell?address=${nft.tokenAddress}&tokenId=${nft.id}`}
+          className="btn btn-primary btn-xs mt-2"
+        >
+          Sell
+        </Link>
       </div>
     </div>
   );

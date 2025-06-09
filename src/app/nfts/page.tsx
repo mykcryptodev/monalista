@@ -37,8 +37,8 @@ export default function MyNFTsPage() {
   }, [account]);
 
   return (
-    <main className="bg-base-400 h-screen w-screen">
-      <div className="w-[300px] mx-auto p-4 bg-base-300 rounded-lg h-full overflow-y-auto space-y-4">
+    <main className="h-screen w-screen">
+      <div className="w-[300px] mx-auto p-4 rounded-lg h-full overflow-y-auto space-y-4">
         <div className="flex justify-stretch flex-col gap-2">
           <ConnectButton client={client} />
         </div>

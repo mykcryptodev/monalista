@@ -1,5 +1,4 @@
 "use client";
-
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getContract } from "thirdweb";
@@ -16,7 +15,6 @@ import {
   NFTProvider,
   NFTMedia,
   NFTName,
-  NFTDescription,
   PayEmbed,
   TransactionButton,
   useActiveAccount,
@@ -33,6 +31,7 @@ import TokenIconFallback from "~/app/components/TokenIconFallback";
 import { CollectionAbout } from "~/app/components/CollectionAbout";
 import { toTokens, toUnits } from "thirdweb/utils";
 import { getWalletBalance } from "thirdweb/wallets";
+import DescriptionWithReadMore from "~/app/components/DescriptionWithReadMore";
 
 export default function AuctionPage() {
   const params = useParams();
@@ -166,11 +165,22 @@ export default function AuctionPage() {
   };
 
   const handleBuyoutSuccess = () => {
+    if (!auction) return;
     toast.success("Auction bought out!");
     fetch("/api/cache/invalidate", {
       method: "POST",
-      body: JSON.stringify({ keys: ["auctions", `auction:${auction!.id}`] }),
+      body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
     });
+    if (auction.winningBid?.bidderAddress) {
+      fetch("/api/notifications/outbid", {
+        method: "POST",
+        body: JSON.stringify({
+          previousBidder: auction.winningBid.bidderAddress,
+          auctionId: auction.id,
+          nftName: auction.asset.metadata.name,
+        }),
+      });
+    }
     setBuyoutModalOpen(false);
     setShowBuyoutPayEmbed(false);
   };
@@ -258,9 +268,7 @@ export default function AuctionPage() {
               <h2 className="card-title">
                 <NFTName />
               </h2>
-              <div className="text-sm opacity-70">
-                <NFTDescription />
-              </div>
+              <DescriptionWithReadMore description={auction.asset.metadata.description || ""} />
               {nftInfo?.rarityRank && (
                 <p className="text-xs mt-2">Rarity Rank: {nftInfo.rarityRank}</p>
               )}
@@ -268,8 +276,10 @@ export default function AuctionPage() {
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                   {nftInfo.traits.map((t, i) => (
                     <div key={i} className="border rounded p-2">
-                      <div className="font-semibold">{t.attributeName}</div>
-                      <div>{t.attributeValue}</div>
+                      <div className="font-semibold truncate">
+                        {t.attributeName}
+                      </div>
+                      <div className="truncate">{t.attributeValue}</div>
                     </div>
                   ))}
                 </div>

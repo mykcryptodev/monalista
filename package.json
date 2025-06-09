@@ -15,9 +15,10 @@
 		"next": "^15",
 		"react": "^19",
 		"react-dom": "^19",
-		"react-toastify": "^11.0.5",
-		"thirdweb": "^5.102.6"
-	},
+    "react-toastify": "^11.0.5",
+    "thirdweb": "^5.102.6",
+    "@neynar/nodejs-sdk": "^2.46.0"
+  },
 	"devDependencies": {
 		"@types/node": "^20",
 		"@types/react": "^18",

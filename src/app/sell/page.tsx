@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ConnectButton,
   TransactionButton,
@@ -28,7 +29,7 @@ function toLocal(date: Date) {
   return local.toISOString().slice(0, 16);
 }
 
-export default function SellPage() {
+function SellPageContent() {
   const account = useActiveAccount();
   const [saleType, setSaleType] = useState<"listing" | "auction">("listing");
   const [selectedNft, setSelectedNft] = useState<OwnedNFT | null>(null);
@@ -43,6 +44,20 @@ export default function SellPage() {
   const [buyoutBid, setBuyoutBid] = useState("");
   const [price, setPrice] = useState("");
   const [approved, setApproved] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const address = searchParams.get("address");
+    const tokenId = searchParams.get("tokenId");
+    if (address && tokenId) {
+      setSelectedNft({
+        id: tokenId,
+        tokenAddress: address,
+        metadata: {},
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkApproval = async () => {
@@ -107,7 +122,7 @@ export default function SellPage() {
             Auction
           </label>
         </div>
-        <NftDropdown onSelect={setSelectedNft} />
+        <NftDropdown onSelect={setSelectedNft} selected={selectedNft} />
         {selectedNft && !ownsOneNft && (
           <div>
             <label className="label py-0">
@@ -320,5 +335,13 @@ export default function SellPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SellPage() {
+  return (
+    <Suspense fallback={null}>
+      <SellPageContent />
+    </Suspense>
   );
 }
