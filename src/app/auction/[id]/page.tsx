@@ -413,6 +413,7 @@ export default function AuctionPage() {
                       toast.dismiss();
                       toast.error(error.message);
                     }}
+                      if (!auction) return;
                   >
                     Cancel Auction
                   </TransactionButton>
