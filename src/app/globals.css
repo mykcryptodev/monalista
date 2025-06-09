@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: black --default, black --prefersdark;
+  themes: all;
 }
 
 @font-face {
