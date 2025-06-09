@@ -451,7 +451,7 @@ export default function AuctionPage() {
                           body: JSON.stringify({
                             previousBidder: auction.winningBid.bidderAddress,
                             auctionId: auction.id,
-                            nftName: auction.asset.name,
+                            nftName: auction.asset.metadata.name,
                           }),
                         });
                       }
