@@ -1,5 +1,4 @@
 "use client";
-
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getContract } from "thirdweb";
@@ -166,11 +165,22 @@ export default function AuctionPage() {
   };
 
   const handleBuyoutSuccess = () => {
+    if (!auction) return;
     toast.success("Auction bought out!");
     fetch("/api/cache/invalidate", {
       method: "POST",
-      body: JSON.stringify({ keys: ["auctions", `auction:${auction!.id}`] }),
+      body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
     });
+    if (auction.winningBid?.bidderAddress) {
+      fetch("/api/notifications/outbid", {
+        method: "POST",
+        body: JSON.stringify({
+          previousBidder: auction.winningBid.bidderAddress,
+          auctionId: auction.id,
+          nftName: auction.asset.metadata.name,
+        }),
+      });
+    }
     setBuyoutModalOpen(false);
     setShowBuyoutPayEmbed(false);
   };
