@@ -311,7 +311,7 @@ export default function DirectListingPage() {
                       setShowBuyModal(false);
                     }}
                   >
-                    Pay with any crypto
+                    Get {listing.currencyValuePerToken.symbol}
                   </button>
                 )}
               </div>

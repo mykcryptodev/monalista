@@ -481,7 +481,7 @@ export default function AuctionPage() {
                         }}
                         disabled={!isBidValid}
                       >
-                        Pay with any crypto
+                        Get {auction.minimumBidCurrencyValue.symbol}
                       </button>
                     )}
                   </>
@@ -527,7 +527,7 @@ export default function AuctionPage() {
                         }}
                         disabled={!isBidValid}
                       >
-                        Pay with any crypto
+                        Get {auction.minimumBidCurrencyValue.symbol}
                       </button>
                     )}
                   </>
@@ -623,7 +623,7 @@ export default function AuctionPage() {
                       setBuyoutModalOpen(false);
                     }}
                   >
-                    Pay with any crypto
+                    Get {auction.buyoutCurrencyValue.symbol}
                   </button>
                 )}
               </div>
