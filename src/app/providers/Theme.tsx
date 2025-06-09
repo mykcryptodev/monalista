@@ -17,6 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const fid = farcaster?.context?.user?.fid;
   const [theme, setThemeState] = useState<string>(DEFAULT_THEME);
 
+  // Load the stored theme for this user when their FID is available
   useEffect(() => {
     if (!fid) return;
     (async () => {
@@ -25,17 +26,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (res.ok) {
           const data = await res.json();
           setThemeState(data.theme);
-          document.documentElement.setAttribute("data-theme", data.theme);
         }
       } catch {
-        // ignore
+        // ignore network errors
       }
     })();
   }, [fid]);
 
+  // Sync the html data-theme attribute whenever the theme changes
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   const setTheme = async (newTheme: string) => {
     setThemeState(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
     if (fid) {
       try {
         await fetch("/api/theme", {
