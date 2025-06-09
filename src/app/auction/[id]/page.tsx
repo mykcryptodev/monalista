@@ -165,10 +165,11 @@ export default function AuctionPage() {
   };
 
   const handleBuyoutSuccess = () => {
+    if (!auction) return;
     toast.success("Auction bought out!");
     fetch("/api/cache/invalidate", {
       method: "POST",
-      body: JSON.stringify({ keys: ["auctions", `auction:${auction!.id}`] }),
+      body: JSON.stringify({ keys: ["auctions", `auction:${auction.id}`] }),
     });
     if (auction.winningBid?.bidderAddress) {
       fetch("/api/notifications/outbid", {
@@ -412,7 +413,6 @@ export default function AuctionPage() {
                       toast.dismiss();
                       toast.error(error.message);
                     }}
-                      if (!auction) return;
                   >
                     Cancel Auction
                   </TransactionButton>
