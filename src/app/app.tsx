@@ -9,8 +9,8 @@ import { AuctionList } from "./components/Auction/List";
 
 export default function App() {
 	return (
-                <main className="min-h-screen w-screen pb-20">
-                        <div className="max-w-sm mx-auto p-4 min-h-full">
+		<main className="min-h-screen w-screen pb-20"> 
+		  <div className="max-w-sm mx-auto p-4 min-h-full">
 				<div className="flex justify-stretch flex-col mb-2 gap-2">
 				  <ConnectButton client={client} />
 				</div>

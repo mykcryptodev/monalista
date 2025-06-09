@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="black">
       <body className="pb-20">
         <ThirdwebProvider>
           <FarcasterProvider>
