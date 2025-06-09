@@ -14,7 +14,7 @@ export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const farcaster = useContext(FarcasterContext);
-  const fid = farcaster?.context?.fid;
+  const fid = farcaster?.context?.user?.fid;
   const [theme, setThemeState] = useState<string>(DEFAULT_THEME);
 
   useEffect(() => {
