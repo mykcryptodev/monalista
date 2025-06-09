@@ -114,7 +114,7 @@ export const DirectListingCard: FC<Props> = ({ listing }) => {
                   className="btn btn-outline btn-xs text-xs"
                   onClick={() => setShowPay(true)}
                 >
-                  Pay with crypto
+                  Get {listing.currencyValuePerToken.symbol}
                 </button>
               )}
               {showPay && (

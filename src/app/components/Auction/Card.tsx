@@ -114,7 +114,7 @@ export const AuctionCard: FC<Props> = ({ auction }) => {
                   className="btn btn-outline btn-xs text-xs px-2 min-h-6 h-6"
                   onClick={() => setShowPay(true)}
                 >
-                  Pay with crypto
+                  Get {auction.buyoutCurrencyValue.symbol}
                 </button>
               )}
               {showPay && (
