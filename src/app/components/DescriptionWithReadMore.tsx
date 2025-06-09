@@ -25,6 +25,14 @@ const DescriptionWithReadMore: FC<Props> = ({ description }) => {
           Read More
         </button>
       )}
+      {shouldTruncate && expanded && (
+        <span
+          className="underline cursor-pointer ml-1"
+          onClick={() => setExpanded(false)}
+        >
+          Read Less
+        </span>
+      )}
     </div>
   );
 };
