@@ -46,7 +46,7 @@ export const Account: FC<Props> = ({
   return (
     <AccountProvider address={address} client={client}>
       <div
-        className={`flex items-center gap-2 ${className ?? ""}`.trim()}
+        className={`flex items-center gap-2 cursor-pointer ${className ?? ""}`.trim()}
         onClick={handleClick}
       >
         <AccountAvatar
