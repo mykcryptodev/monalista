@@ -29,7 +29,7 @@ export async function sendMiniAppNotification(params: {
     notification: {
       title: params.title,
       body: params.body,
-      targetUrl: params.targetUrl,
+      target_url: params.targetUrl,
     },
   });
 }
