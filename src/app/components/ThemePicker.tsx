@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { ThemeContext } from "../providers/Theme";
 
-const themes = [
+export const themes = [
   "light",
   "dark",
   "cupcake",
