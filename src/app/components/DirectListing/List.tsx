@@ -20,7 +20,7 @@ export const DirectListingList: FC = () => {
     <div>
       <div className="flex items-center mb-2">
         <h1 className="font-bold flex-1">For Sale</h1>
-        <Link href="/create-listing" className="btn btn-secondary btn-sm">
+        <Link href="/sell" className="btn btn-secondary btn-sm">
           Create Listing
         </Link>
       </div>

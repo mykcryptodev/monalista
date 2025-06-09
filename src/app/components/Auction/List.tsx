@@ -19,7 +19,7 @@ export const AuctionList: FC = () => {
     <div className="mt-6">
       <div className="flex items-center mb-2">
         <h1 className="font-bold flex-1">Auctions</h1>
-        <Link href="/auction/create" className="btn btn-secondary btn-sm">
+        <Link href="/sell" className="btn btn-secondary btn-sm">
           Create Auction
         </Link>
       </div>
