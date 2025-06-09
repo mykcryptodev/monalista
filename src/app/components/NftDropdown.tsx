@@ -12,13 +12,16 @@ export type OwnedNFT = {
 
 type Props = {
   onSelect: (nft: OwnedNFT) => void;
+  selected?: OwnedNFT | null;
 };
 
-export const NftDropdown: FC<Props> = ({ onSelect }) => {
+export const NftDropdown: FC<Props> = ({ onSelect, selected }) => {
   const account = useActiveAccount();
   const [nfts, setNfts] = useState<OwnedNFT[]>([]);
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(
+    selected ? selected.metadata.name ?? selected.id : ""
+  );
   const [manual, setManual] = useState(false);
   const [manualAddress, setManualAddress] = useState("");
   const [manualId, setManualId] = useState("");
@@ -27,6 +30,18 @@ export const NftDropdown: FC<Props> = ({ onSelect }) => {
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (selected) {
+      setQuery(selected.metadata.name ? selected.metadata.name : selected.id);
+      setNfts((prev) => {
+        const exists = prev.some(
+          (n) => n.tokenAddress === selected.tokenAddress && n.id === selected.id
+        );
+        return exists ? prev : [selected, ...prev];
+      });
+    }
+  }, [selected]);
 
   useEffect(() => {
     if (!account) return;

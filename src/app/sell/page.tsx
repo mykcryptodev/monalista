@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ConnectButton,
   TransactionButton,
@@ -43,6 +44,20 @@ export default function SellPage() {
   const [buyoutBid, setBuyoutBid] = useState("");
   const [price, setPrice] = useState("");
   const [approved, setApproved] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const address = searchParams.get("address");
+    const tokenId = searchParams.get("tokenId");
+    if (address && tokenId) {
+      setSelectedNft({
+        id: tokenId,
+        tokenAddress: address,
+        metadata: {},
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkApproval = async () => {
@@ -107,7 +122,7 @@ export default function SellPage() {
             Auction
           </label>
         </div>
-        <NftDropdown onSelect={setSelectedNft} />
+        <NftDropdown onSelect={setSelectedNft} selected={selectedNft} />
         {selectedNft && !ownsOneNft && (
           <div>
             <label className="label py-0">
